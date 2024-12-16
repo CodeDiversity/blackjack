@@ -29,31 +29,33 @@ const Hand: React.FC<HandProps> = ({ hand, isDealer, hideHoleCard, revealIndex }
       <div className="text-lg font-semibold text-gray-100">
         {isDealer ? 'Dealer' : 'Player'}: {displayScore}
       </div>
-      <div className="relative h-36 w-[500px]">
-        {hand.cards.map((card, index) => (
-          <motion.div
-            key={index}
-            className="absolute"
-            style={{ left: `${index * 120}px` }}
-            initial={{ opacity: 0, scale: 0.3, x: 200 }}
-            animate={{ 
-              opacity: isDealer && index > (revealIndex ?? -1) ? 0 : 1,
-              scale: 1,
-              x: 0
-            }}
-            transition={{ 
-              type: "spring",
-              stiffness: 260,
-              damping: 20,
-              delay: index * 0.1
-            }}
-          >
-            <Card 
-              card={card} 
-              isHidden={hideHoleCard && index === 1}
-            />
-          </motion.div>
-        ))}
+      <div className="relative h-36 w-[500px] flex justify-center">
+        <div className="relative w-[360px]">
+          {hand.cards.map((card, index) => (
+            <motion.div
+              key={index}
+              className="absolute"
+              style={{ left: `${index * 120}px` }}
+              initial={{ opacity: 0, scale: 0.3, x: 200 }}
+              animate={{ 
+                opacity: isDealer && index > (revealIndex ?? -1) ? 0 : 1,
+                scale: 1,
+                x: 0
+              }}
+              transition={{ 
+                type: "spring",
+                stiffness: 260,
+                damping: 20,
+                delay: index * 0.1
+              }}
+            >
+              <Card 
+                card={card} 
+                isHidden={hideHoleCard && index === 1}
+              />
+            </motion.div>
+          ))}
+        </div>
       </div>
     </div>
   );

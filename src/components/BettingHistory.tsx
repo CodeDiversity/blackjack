@@ -18,9 +18,9 @@ const BettingHistory: React.FC<BettingHistoryProps> = ({ bets }) => {
   };
 
   return (
-    <div className="mt-4">
+    <div className="h-full">
       <h3 className="text-lg font-semibold mb-2 text-white">Betting History</h3>
-      <div className="space-y-2">
+      <div className="space-y-2 overflow-y-auto max-h-[550px]">
         {(bets || []).map((bet, index) => (
           <div
             key={index}
