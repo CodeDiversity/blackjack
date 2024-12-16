@@ -13,8 +13,10 @@ function App() {
     startNewHand,
     handleHit,
     handleStand,
+    handleDoubleDown,
     startNewGame,
     resetGame,
+    canDoubleDown
   } = useGameLogic();
 
   return (
@@ -59,12 +61,14 @@ function App() {
               <Controls
                 onHit={handleHit}
                 onStand={handleStand}
+                onDoubleDown={handleDoubleDown}
                 onNewGame={startNewGame}
                 onReset={resetGame}
                 onPlacePreviousBet={placePreviousBet}
                 gameStatus={gameState.gameStatus}
                 previousBet={gameState.previousBet}
                 chips={gameState.chips}
+                canDoubleDown={canDoubleDown}
               />
             </div>
           </div>

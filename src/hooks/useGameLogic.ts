@@ -263,6 +263,61 @@ export function useGameLogic() {
     window.location.reload();
   };
 
+  const handleDoubleDown = async () => {
+    if (gameState.gameStatus !== 'playing' || 
+        gameState.chips < gameState.currentBet || 
+        gameState.playerHand.cards.length > 2) return;
+
+    // Double the bet
+    const newBet = gameState.currentBet * 2;
+    
+    // Deal one card
+    const newDeck = [...gameState.deck];
+    const newCard = newDeck.pop()!;
+    const newHand = {
+      cards: [...gameState.playerHand.cards, newCard],
+      score: calculateHandScore([...gameState.playerHand.cards, newCard]),
+      isBusted: false
+    };
+    newHand.isBusted = newHand.score > 21;
+
+    // Update state with doubled bet and new card
+    setGameState(prev => ({
+      ...prev,
+      deck: newDeck,
+      playerHand: newHand,
+      chips: prev.chips - prev.currentBet, // Subtract the additional bet
+      currentBet: newBet,
+      gameStatus: 'dealerTurn',
+      message: newHand.isBusted ? 'Bust! Dealer wins!' : "Dealer's turn..."
+    }));
+
+    if (newHand.isBusted) {
+      setGameState(prev => ({
+        ...prev,
+        gameStatus: 'finished',
+        message: 'Bust! Dealer wins!',
+        currentBet: 0,
+        bettingHistory: [
+          {
+            amount: newBet,
+            won: false,
+            timestamp: new Date()
+          },
+          ...(prev.bettingHistory || [])
+        ].slice(0, 5)
+      }));
+    } else {
+      await handleDealerTurn();
+    }
+  };
+
+  // Add canDoubleDown check
+  const canDoubleDown = 
+    gameState.gameStatus === 'playing' && 
+    gameState.playerHand.cards.length === 2 && 
+    gameState.chips >= gameState.currentBet;
+
   console.log(gameState.bettingHistory)
 
   return {
@@ -272,7 +327,9 @@ export function useGameLogic() {
     startNewHand,
     handleHit,
     handleStand,
+    handleDoubleDown,
     startNewGame,
-    resetGame
+    resetGame,
+    canDoubleDown
   };
 }

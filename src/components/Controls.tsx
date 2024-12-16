@@ -3,25 +3,28 @@ import React from 'react';
 interface ControlsProps {
   onHit: () => void;
   onStand: () => void;
+  onDoubleDown: () => void;
   onNewGame: () => void;
   onReset: () => void;
   onPlacePreviousBet: () => void;
   gameStatus: string;
   previousBet: number;
   chips: number;
+  canDoubleDown: boolean;
 }
 
 const Controls: React.FC<ControlsProps> = ({
   onHit,
   onStand,
+  onDoubleDown,
   onNewGame,
   onReset,
   onPlacePreviousBet,
   gameStatus,
   previousBet,
-  chips
+  chips,
+  canDoubleDown
 }) => {
-  const isPlaying = gameStatus === 'playing';
   const isBetting = gameStatus === 'betting';
   const canAct = gameStatus === 'playing';
 
@@ -48,6 +51,17 @@ const Controls: React.FC<ControlsProps> = ({
       >
         Stand
       </button>
+
+      {canDoubleDown && (
+        <button
+          onClick={onDoubleDown}
+          disabled={!canAct}
+          className={`px-6 py-3 rounded-lg font-semibold transition-colors
+            ${canAct ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-gray-400 text-gray-200 cursor-not-allowed'}`}
+        >
+          Double Down
+        </button>
+      )}
 
       {gameStatus === 'finished' && (
         <button
