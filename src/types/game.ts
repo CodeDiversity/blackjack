@@ -21,7 +21,7 @@ export interface GameState {
   playerHand: Hand;
   dealerHand: Hand;
   deck: Card[];
-  gameStatus: 'betting' | 'playing' | 'dealerTurn' | 'finished';
+  gameStatus: 'betting' | 'dealing' | 'playing' | 'dealerTurn' | 'finished';
   message: string;
   chips: number;
   currentBet: number;

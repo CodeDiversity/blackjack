@@ -43,6 +43,16 @@ export function useGameLogic() {
     }
   }, [gameState.bettingHistory, setGameState]);
 
+  useEffect(() => {
+    if (gameState.chips <= 0) {
+      setGameState(prev => ({
+        ...prev,
+        gameStatus: 'finished',
+        message: 'Game Over!'
+      }));
+    }
+  }, []);
+
   const placeBet = (amount: number) => {
     if (gameState.gameStatus !== 'betting' || gameState.chips < amount) return;
 
@@ -53,64 +63,163 @@ export function useGameLogic() {
     }));
   };
 
-  const placePreviousBet = () => {
+  const placePreviousBet = async () => {
     if (
       gameState.previousBet === 0 || 
       gameState.chips < gameState.previousBet ||
-      gameState.currentBet > 0  // Prevent betting if there's already a current bet
+      gameState.currentBet > 0
     ) return;
 
-    // Place bet and deal cards in one action
     const deck = createDeck();
     const playerCards = [deck.pop()!, deck.pop()!];
     const dealerCards = [deck.pop()!, deck.pop()!];
 
+    // Clear hands first
+    setGameState(prev => ({
+      ...prev,
+      chips: prev.chips - prev.previousBet,
+      currentBet: prev.previousBet,
+      previousBet: prev.previousBet,
+      playerHand: { cards: [], score: 0, isBusted: false },
+      dealerHand: { cards: [], score: 0, isBusted: false },
+      deck,
+      gameStatus: 'dealing',
+      message: 'Dealing cards...',
+      revealIndex: -1  // Hide all dealer cards initially
+    }));
+
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Deal first card to player
     setGameState(prev => ({
       ...prev,
       chips: prev.chips - prev.previousBet,
       currentBet: prev.previousBet,
       previousBet: prev.previousBet,
       playerHand: {
-        cards: playerCards,
-        score: calculateHandScore(playerCards),
-        isBusted: false
-      },
-      dealerHand: {
-        cards: dealerCards,
-        score: calculateHandScore(dealerCards),
+        cards: [playerCards[0]],
+        score: calculateHandScore([playerCards[0]]),
         isBusted: false
       },
       deck,
-      gameStatus: 'playing',
-      message: 'Your turn!',
+      gameStatus: 'dealing',
+      message: 'Dealing cards...',
+    }));
+
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Deal first card to dealer
+    setGameState(prev => ({
+      ...prev,
+      dealerHand: {
+        cards: [dealerCards[0]],
+        score: calculateHandScore([dealerCards[0]]),
+        isBusted: false
+      },
       revealIndex: 0
     }));
-  };
 
-  const startNewHand = () => {
-    if (gameState.currentBet === 0) return;
+    await new Promise(resolve => setTimeout(resolve, 500));
 
-    const deck = createDeck();
-    const playerCards = [deck.pop()!, deck.pop()!];
-    const dealerCards = [deck.pop()!, deck.pop()!];
-
+    // Deal second card to player
     setGameState(prev => ({
       ...prev,
       playerHand: {
         cards: playerCards,
         score: calculateHandScore(playerCards),
         isBusted: false
-      },
+      }
+    }));
+
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Deal second card to dealer and start play
+    setGameState(prev => ({
+      ...prev,
       dealerHand: {
         cards: dealerCards,
         score: calculateHandScore(dealerCards),
         isBusted: false
       },
-      deck,
       gameStatus: 'playing',
       message: 'Your turn!',
-      revealIndex: 0,
+      revealIndex: 1
+    }));
+  };
+
+  const startNewHand = async () => {
+    if (gameState.currentBet === 0) return;
+
+    const deck = createDeck();
+    const playerCards = [deck.pop()!, deck.pop()!];
+    const dealerCards = [deck.pop()!, deck.pop()!];
+
+    // Clear hands first
+    setGameState(prev => ({
+      ...prev,
+      playerHand: { cards: [], score: 0, isBusted: false },
+      dealerHand: { cards: [], score: 0, isBusted: false },
+      deck,
+      gameStatus: 'dealing',
+      message: 'Dealing cards...',
       previousBet: gameState.currentBet,
+      revealIndex: -1  // Hide all dealer cards initially
+    }));
+
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Deal first card to player
+    setGameState(prev => ({
+      ...prev,
+      playerHand: {
+        cards: [playerCards[0]],
+        score: calculateHandScore([playerCards[0]]),
+        isBusted: false
+      },
+      deck,
+      gameStatus: 'dealing',
+      message: 'Dealing cards...',
+      previousBet: gameState.currentBet,
+    }));
+
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Deal first card to dealer
+    setGameState(prev => ({
+      ...prev,
+      dealerHand: {
+        cards: [dealerCards[0]],
+        score: calculateHandScore([dealerCards[0]]),
+        isBusted: false
+      },
+      revealIndex: 0
+    }));
+
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Deal second card to player
+    setGameState(prev => ({
+      ...prev,
+      playerHand: {
+        cards: playerCards,
+        score: calculateHandScore(playerCards),
+        isBusted: false
+      }
+    }));
+
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Deal second card to dealer and start play
+    setGameState(prev => ({
+      ...prev,
+      dealerHand: {
+        cards: dealerCards,
+        score: calculateHandScore(dealerCards),
+        isBusted: false
+      },
+      gameStatus: 'playing',
+      message: 'Your turn!',
+      revealIndex: 1
     }));
   };
 
@@ -127,23 +236,25 @@ export function useGameLogic() {
     newHand.isBusted = newHand.score > 21;
 
     if (newHand.isBusted) {
-      updateBettingHistory(false);
-      setGameState(prev => ({
-        ...prev,
-        deck: newDeck,
-        playerHand: newHand,
-        gameStatus: 'finished',
-        message: 'Bust! Dealer wins!',
-        currentBet: 0,
-        bettingHistory: [
-          {
-            amount: prev.currentBet,
-            won: false,
-            timestamp: new Date()
-          },
-          ...(prev.bettingHistory || [])
-        ].slice(0, 5)
-      }));
+      setGameState(prev => {
+        const newChips = prev.chips;
+        return {
+          ...prev,
+          deck: newDeck,
+          playerHand: newHand,
+          gameStatus: 'finished',
+          message: newChips <= 0 ? 'Game Over!' : 'Bust! Dealer wins!',
+          currentBet: 0,
+          bettingHistory: [
+            {
+              amount: prev.currentBet,
+              won: false,
+              timestamp: new Date()
+            },
+            ...(prev.bettingHistory || [])
+          ].slice(0, 5)
+        };
+      });
     } else {
       setGameState(prev => ({
         ...prev,
@@ -161,7 +272,11 @@ export function useGameLogic() {
     currentState.revealIndex = 1;
 
     await new Promise(resolve => setTimeout(resolve, REVEAL_DELAY));
-    setGameState(prev => ({ ...prev, ...currentState }));
+    setGameState(prev => ({ 
+      ...prev, 
+      ...currentState,
+      message: "Dealer's turn..."
+    }));
 
     while (shouldDealerHit(currentState.dealerHand.score)) {
       await new Promise(resolve => setTimeout(resolve, REVEAL_DELAY));
@@ -176,7 +291,8 @@ export function useGameLogic() {
           score: calculateHandScore(currentState.dealerHand.cards),
           isBusted: false
         },
-        revealIndex: currentState.revealIndex + 1
+        revealIndex: currentState.revealIndex + 1,
+        message: "Dealer's turn..."
       };
 
       setGameState(prev => ({ ...prev, ...currentState }));
@@ -197,13 +313,15 @@ export function useGameLogic() {
     );
 
     const isWin = result.amount > currentState.currentBet;
+    const newChips = gameState.chips + result.amount;
 
+    // First show the result
     setGameState(prev => ({
       ...prev,
       ...currentState,
-      gameStatus: 'finished',
+      gameStatus: newChips <= 0 ? 'finished' : 'finished',
       message: result.message,
-      chips: prev.chips + result.amount,
+      chips: newChips,
       currentBet: 0,
       bettingHistory: [
         {
@@ -214,6 +332,23 @@ export function useGameLogic() {
         ...(prev.bettingHistory || [])
       ].slice(0, 5)
     }));
+
+    // Wait a moment to show the result
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Then transition to betting only if we have chips
+    if (newChips > 0) {
+      setGameState(prev => ({
+        ...prev,
+        gameStatus: 'betting',
+        message: 'Place your bet!'
+      }));
+    } else {
+      setGameState(prev => ({
+        ...prev,
+        message: 'Game Over!'
+      }));
+    }
   };
 
   const handleStand = async () => {

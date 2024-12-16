@@ -12,30 +12,40 @@ interface HandProps {
 }
 
 const Hand: React.FC<HandProps> = ({ hand, isDealer, hideHoleCard, revealIndex }) => {
-  // Calculate score based only on revealed cards for dealer
-  const displayScore = isDealer && hideHoleCard
-    ? calculateHandScore([hand.cards[0]]) // Show only first card's value
-    : isDealer
-    ? calculateHandScore(hand.cards.slice(0, (revealIndex || 0) + 1))
-    : hand.score;
+  const getDisplayScore = () => {
+    if (isDealer && hideHoleCard) {
+      return calculateHandScore([hand.cards[0]]);
+    }
+    if (isDealer) {
+      return calculateHandScore(hand.cards.slice(0, (revealIndex ?? 0) + 1));
+    }
+    return hand.score;
+  };
+
+  const displayScore = getDisplayScore();
 
   return (
     <div className="flex flex-col items-center gap-2">
       <div className="text-lg font-semibold text-gray-100">
         {isDealer ? 'Dealer' : 'Player'}: {displayScore}
       </div>
-      <div className="flex gap-2">
+      <div className="relative h-36 w-[500px]">
         {hand.cards.map((card, index) => (
           <motion.div
             key={index}
-            initial={{ x: 1000, opacity: 0 }}
+            className="absolute"
+            style={{ left: `${index * 120}px` }}
+            initial={{ opacity: 0, scale: 0.3, x: 200 }}
             animate={{ 
-              x: 0, 
-              opacity: isDealer && index > revealIndex ? 0 : 1 
+              opacity: isDealer && index > (revealIndex ?? -1) ? 0 : 1,
+              scale: 1,
+              x: 0
             }}
             transition={{ 
-              duration: 0.5,
-              delay: index * 0.2 
+              type: "spring",
+              stiffness: 260,
+              damping: 20,
+              delay: index * 0.1
             }}
           >
             <Card 

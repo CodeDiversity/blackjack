@@ -25,6 +25,8 @@ const Controls: React.FC<ControlsProps> = ({
   chips,
   canDoubleDown
 }) => {
+  console.log('Controls render:', { gameStatus, chips });
+
   const isBetting = gameStatus === 'betting';
   const canAct = gameStatus === 'playing';
 
@@ -83,7 +85,7 @@ const Controls: React.FC<ControlsProps> = ({
         </button>
       )}
 
-      {gameStatus === 'finished' && chips === 0 && (
+      {gameStatus === 'finished' && chips <= 0 && (
         <button
           onClick={onReset}
           className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700
