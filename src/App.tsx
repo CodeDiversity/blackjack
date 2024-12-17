@@ -16,7 +16,8 @@ function App() {
     handleDoubleDown,
     startNewGame,
     resetGame,
-    canDoubleDown
+    canDoubleDown,
+    displayedCardCount
   } = useGameLogic();
 
   return (
@@ -28,7 +29,12 @@ function App() {
           </div>
 
           <div className="flex-grow flex flex-col">
-            <h1 className="text-4xl font-bold text-center mb-8 text-white">Blackjack</h1>
+            <div className="flex justify-between items-center mb-8">
+              <h1 className="text-4xl font-bold text-white">Blackjack</h1>
+              <div className="text-sm text-gray-200">
+                Cards Remaining: {displayedCardCount}
+              </div>
+            </div>
 
             <div className="flex flex-col items-center justify-between flex-grow pb-8">
               <div className="flex flex-col items-center gap-8">

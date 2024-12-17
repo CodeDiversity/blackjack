@@ -1,9 +1,11 @@
 import useLocalStorage from './useLocalStorage';
-import { GameState } from '../types/game';
+import { Card, GameState } from '../types/game';
 import { createDeck, calculateHandScore } from '../utils/deckUtils';
 import { calculateWinnings, INITIAL_CHIPS } from '../utils/betUtils';
 import { REVEAL_DELAY, shouldDealerHit } from '../utils/dealerUtils';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
+const MIN_CARDS_BEFORE_SHUFFLE = 4;
 
 export function useGameLogic() {
   const [gameState, setGameState] = useLocalStorage<GameState>('blackjack-state', {
@@ -30,6 +32,8 @@ export function useGameLogic() {
       timestamp: Date;
     }>
   });
+
+  const [displayedCardCount, setDisplayedCardCount] = useState(0);
 
   useEffect(() => {
     if (gameState.bettingHistory?.length > 0 && !(gameState.bettingHistory[0]?.timestamp instanceof Date)) {
@@ -70,9 +74,12 @@ export function useGameLogic() {
       gameState.currentBet > 0
     ) return;
 
-    const deck = createDeck();
-    const playerCards = [deck.pop()!, deck.pop()!];
-    const dealerCards = [deck.pop()!, deck.pop()!];
+    const currentDeck = needsNewDeck(gameState.deck) ? createDeck() : gameState.deck;
+    console.log('Initial deck size:', currentDeck.length);
+
+    const playerCards = [currentDeck.pop()!, currentDeck.pop()!];
+    const dealerCards = [currentDeck.pop()!, currentDeck.pop()!];
+    console.log('After dealing all cards:', currentDeck.length);
 
     // Clear hands first and subtract bet once
     setGameState(prev => ({
@@ -82,7 +89,7 @@ export function useGameLogic() {
       previousBet: prev.previousBet,
       playerHand: { cards: [], score: 0, isBusted: false },
       dealerHand: { cards: [], score: 0, isBusted: false },
-      deck,
+      deck: currentDeck,
       gameStatus: 'dealing',
       message: 'Dealing cards...',
       revealIndex: -1
@@ -98,11 +105,12 @@ export function useGameLogic() {
         score: calculateHandScore([playerCards[0]]),
         isBusted: false
       },
-      deck,
+      deck: currentDeck,
       gameStatus: 'dealing',
       message: 'Dealing cards...',
     }));
-
+    console.log('After first player card:', currentDeck.length);
+    setDisplayedCardCount(currentDeck.length);
     await new Promise(resolve => setTimeout(resolve, 500));
 
     // Deal first card to dealer
@@ -115,7 +123,8 @@ export function useGameLogic() {
       },
       revealIndex: 0
     }));
-
+    console.log('After first dealer card:', currentDeck.length);
+    setDisplayedCardCount(currentDeck.length);
     await new Promise(resolve => setTimeout(resolve, 500));
 
     // Deal second card to player
@@ -127,7 +136,8 @@ export function useGameLogic() {
         isBusted: false
       }
     }));
-
+    console.log('After second player card:', currentDeck.length);
+    setDisplayedCardCount(currentDeck.length);
     await new Promise(resolve => setTimeout(resolve, 500));
 
     // Deal second card to dealer and start play
@@ -142,25 +152,42 @@ export function useGameLogic() {
       message: 'Your turn!',
       revealIndex: 1
     }));
+    console.log('After second dealer card:', currentDeck.length);
+    setDisplayedCardCount(currentDeck.length);
+  };
+
+  const startNewGame = () => {
+    setGameState(prev => ({
+      ...prev,
+      gameStatus: 'betting',
+      message: 'Place your bet!',
+      playerHand: { cards: [], score: 0, isBusted: false },
+      dealerHand: { cards: [], score: 0, isBusted: false },
+      currentBet: 0,
+      revealIndex: -1,
+    }));
   };
 
   const startNewHand = async () => {
     if (gameState.currentBet === 0) return;
 
-    const deck = createDeck();
-    const playerCards = [deck.pop()!, deck.pop()!];
-    const dealerCards = [deck.pop()!, deck.pop()!];
+    const currentDeck = needsNewDeck(gameState.deck) ? createDeck() : gameState.deck;
+    console.log('Initial deck size:', currentDeck.length);
+
+    const playerCards = [currentDeck.pop()!, currentDeck.pop()!];
+    const dealerCards = [currentDeck.pop()!, currentDeck.pop()!];
+    console.log('After dealing all cards:', currentDeck.length);
 
     // Clear hands first
     setGameState(prev => ({
       ...prev,
       playerHand: { cards: [], score: 0, isBusted: false },
       dealerHand: { cards: [], score: 0, isBusted: false },
-      deck,
+      deck: currentDeck,
       gameStatus: 'dealing',
       message: 'Dealing cards...',
       previousBet: gameState.currentBet,
-      revealIndex: -1  // Hide all dealer cards initially
+      revealIndex: -1
     }));
 
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -173,12 +200,11 @@ export function useGameLogic() {
         score: calculateHandScore([playerCards[0]]),
         isBusted: false
       },
-      deck,
+      deck: currentDeck,
       gameStatus: 'dealing',
       message: 'Dealing cards...',
-      previousBet: gameState.currentBet,
     }));
-
+    setDisplayedCardCount(currentDeck.length);
     await new Promise(resolve => setTimeout(resolve, 500));
 
     // Deal first card to dealer
@@ -191,7 +217,8 @@ export function useGameLogic() {
       },
       revealIndex: 0
     }));
-
+    console.log('After first dealer card:', currentDeck.length);
+    setDisplayedCardCount(currentDeck.length);
     await new Promise(resolve => setTimeout(resolve, 500));
 
     // Deal second card to player
@@ -203,7 +230,8 @@ export function useGameLogic() {
         isBusted: false
       }
     }));
-
+    console.log('After second player card:', currentDeck.length);
+    setDisplayedCardCount(currentDeck.length);
     await new Promise(resolve => setTimeout(resolve, 500));
 
     // Deal second card to dealer and start play
@@ -218,6 +246,8 @@ export function useGameLogic() {
       message: 'Your turn!',
       revealIndex: 1
     }));
+    console.log('After second dealer card:', currentDeck.length);
+    setDisplayedCardCount(currentDeck.length);
   };
 
   const handleHit = () => {
@@ -261,6 +291,8 @@ export function useGameLogic() {
         message: 'Your turn!'
       }));
     }
+
+    setDisplayedCardCount(newDeck.length);
   };
 
   const handleDealerTurn = async (currentGameState = gameState) => {
@@ -374,19 +406,6 @@ export function useGameLogic() {
     await handleDealerTurn();
   };
 
-  const startNewGame = () => {
-    setGameState(prev => ({
-      ...prev,
-      gameStatus: 'betting',
-      message: 'Place your bet!',
-      playerHand: { cards: [], score: 0, isBusted: false },
-      dealerHand: { cards: [], score: 0, isBusted: false },
-      deck: [],
-      currentBet: 0,
-      revealIndex: -1,
-    }));
-  };
-
   const resetGame = () => {
     window.localStorage.removeItem('blackjack-state');
     window.localStorage.removeItem('blackjack-history');
@@ -454,8 +473,13 @@ export function useGameLogic() {
 
   console.log(gameState.bettingHistory)
 
+  const needsNewDeck = (deck: Card[]) => {
+    return deck.length < MIN_CARDS_BEFORE_SHUFFLE;
+  };
+
   return {
     gameState,
+    displayedCardCount,
     placeBet,
     placePreviousBet,
     startNewHand,
