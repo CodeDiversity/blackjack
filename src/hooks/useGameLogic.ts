@@ -74,7 +74,7 @@ export function useGameLogic() {
     const playerCards = [deck.pop()!, deck.pop()!];
     const dealerCards = [deck.pop()!, deck.pop()!];
 
-    // Clear hands first
+    // Clear hands first and subtract bet once
     setGameState(prev => ({
       ...prev,
       chips: prev.chips - prev.previousBet,
@@ -85,17 +85,14 @@ export function useGameLogic() {
       deck,
       gameStatus: 'dealing',
       message: 'Dealing cards...',
-      revealIndex: -1  // Hide all dealer cards initially
+      revealIndex: -1
     }));
 
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    // Deal first card to player
+    // Deal first card to player (removed chips subtraction)
     setGameState(prev => ({
       ...prev,
-      chips: prev.chips - prev.previousBet,
-      currentBet: prev.previousBet,
-      previousBet: prev.previousBet,
       playerHand: {
         cards: [playerCards[0]],
         score: calculateHandScore([playerCards[0]]),
@@ -403,10 +400,7 @@ export function useGameLogic() {
         gameState.chips < gameState.currentBet || 
         gameState.playerHand.cards.length > 2) return;
 
-    // Double the bet
     const newBet = gameState.currentBet * 2;
-    
-    // Deal one card
     const newDeck = [...gameState.deck];
     const newCard = newDeck.pop()!;
     const newHand = {
@@ -416,23 +410,22 @@ export function useGameLogic() {
     };
     newHand.isBusted = newHand.score > 21;
 
-    // Update state with doubled bet and new card
+    // First update state with the new card and bet
     setGameState(prev => ({
       ...prev,
       deck: newDeck,
       playerHand: newHand,
-      chips: prev.chips - prev.currentBet, // Subtract the additional bet
+      chips: prev.chips - prev.currentBet,
       currentBet: newBet,
-      gameStatus: 'dealerTurn',
+      gameStatus: newHand.isBusted ? 'finished' : 'dealerTurn',
       message: newHand.isBusted ? 'Bust! Dealer wins!' : "Dealer's turn..."
     }));
 
+    // If busted, update history and end game
     if (newHand.isBusted) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
       setGameState(prev => ({
         ...prev,
-        gameStatus: 'finished',
-        message: 'Bust! Dealer wins!',
-        currentBet: 0,
         bettingHistory: [
           {
             amount: newBet,
@@ -443,6 +436,8 @@ export function useGameLogic() {
         ].slice(0, 5)
       }));
     } else {
+      // If not busted, proceed with dealer's turn
+      await new Promise(resolve => setTimeout(resolve, 1000));
       await handleDealerTurn();
     }
   };
