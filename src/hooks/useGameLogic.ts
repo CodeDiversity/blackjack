@@ -264,15 +264,24 @@ export function useGameLogic() {
   };
 
   const handleDealerTurn = async () => {
-    const newState: GameState = { ...gameState, gameStatus: 'dealerTurn' as const };
-    let currentState = newState;
+    // Store the current player hand
+    const playerHandCopy = JSON.parse(JSON.stringify(gameState.playerHand));
+
+    const newState: GameState = { 
+      ...gameState, 
+      gameStatus: 'dealerTurn' as const,
+      playerHand: playerHandCopy
+    };
+    let currentState = { ...newState };
     currentState.revealIndex = 1;
 
     await new Promise(resolve => setTimeout(resolve, REVEAL_DELAY));
     setGameState(prev => ({ 
       ...prev, 
-      ...currentState,
-      message: "Dealer's turn..."
+      gameStatus: 'dealerTurn',
+      revealIndex: 1,
+      message: "Dealer's turn...",
+      playerHand: playerHandCopy
     }));
 
     while (shouldDealerHit(currentState.dealerHand.score)) {
@@ -280,26 +289,30 @@ export function useGameLogic() {
 
       const newCard = currentState.deck.pop()!;
       const newCards = [...currentState.dealerHand.cards, newCard];
+      const newScore = calculateHandScore(newCards);
+      const isBusted = newScore > 21;
 
       currentState = {
         ...currentState,
         dealerHand: {
           cards: newCards,
-          score: calculateHandScore(currentState.dealerHand.cards),
-          isBusted: false
+          score: newScore,
+          isBusted: isBusted
         },
         revealIndex: currentState.revealIndex + 1,
-        message: "Dealer's turn..."
+        playerHand: playerHandCopy
       };
 
-      setGameState(prev => ({ ...prev, ...currentState }));
+      setGameState(prev => ({
+        ...prev,
+        dealerHand: currentState.dealerHand,
+        revealIndex: currentState.revealIndex,
+        playerHand: playerHandCopy,
+        message: currentState.dealerHand.isBusted ? "Dealer busts!" : "Dealer's turn..."
+      }));
 
+      if (isBusted) break; // Stop if dealer busts
       await new Promise(resolve => setTimeout(resolve, 500));
-
-      const newScore = calculateHandScore(newCards);
-      currentState.dealerHand.score = newScore;
-      currentState.dealerHand.isBusted = newScore > 21;
-      setGameState(prev => ({ ...prev, ...currentState }));
     }
 
     const result = calculateWinnings(
