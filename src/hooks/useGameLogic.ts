@@ -263,12 +263,11 @@ export function useGameLogic() {
     }
   };
 
-  const handleDealerTurn = async () => {
-    // Store the current player hand
-    const playerHandCopy = JSON.parse(JSON.stringify(gameState.playerHand));
+  const handleDealerTurn = async (currentGameState = gameState) => {
+    const playerHandCopy = JSON.parse(JSON.stringify(currentGameState.playerHand));
 
     const newState: GameState = { 
-      ...gameState, 
+      ...currentGameState, 
       gameStatus: 'dealerTurn' as const,
       playerHand: playerHandCopy
     };
@@ -323,7 +322,7 @@ export function useGameLogic() {
     );
 
     const isWin = result.amount > currentState.currentBet;
-    const newChips = gameState.chips + result.amount;
+    const newChips = currentGameState.chips + result.amount;
 
     // First show the result
     setGameState(prev => ({
@@ -335,7 +334,7 @@ export function useGameLogic() {
       currentBet: 0,
       bettingHistory: [
         {
-          amount: prev.currentBet,
+          amount: currentGameState.currentBet,
           won: isWin,
           timestamp: new Date()
         },
@@ -420,9 +419,7 @@ export function useGameLogic() {
       message: newHand.isBusted ? 'Bust! Dealer wins!' : "Dealer's turn..."
     }));
 
-    // If busted, update history and end game
     if (newHand.isBusted) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
       setGameState(prev => ({
         ...prev,
         bettingHistory: [
@@ -435,9 +432,17 @@ export function useGameLogic() {
         ].slice(0, 5)
       }));
     } else {
-      // If not busted, proceed with dealer's turn
+      // Create a deep copy of the current state for dealer's turn
+      const stateForDealerTurn = {
+        ...gameState,
+        deck: newDeck,
+        playerHand: { ...newHand },
+        currentBet: newBet,
+        chips: gameState.chips - gameState.currentBet
+      };
+
       await new Promise(resolve => setTimeout(resolve, 1000));
-      await handleDealerTurn();
+      await handleDealerTurn(stateForDealerTurn); // Pass the current state to dealer turn
     }
   };
 
