@@ -388,20 +388,6 @@ export function useGameLogic() {
     }));
   };
 
-  const updateBettingHistory = (won: boolean) => {
-    setGameState(prev => ({
-      ...prev,
-      bettingHistory: [
-        {
-          amount: prev.currentBet,
-          won,
-          timestamp: new Date()
-        },
-        ...(prev.bettingHistory || [])
-      ]
-    }));
-  };
-
   const resetGame = () => {
     window.localStorage.removeItem('blackjack-state');
     window.localStorage.removeItem('blackjack-history');
