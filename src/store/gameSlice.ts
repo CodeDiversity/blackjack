@@ -112,7 +112,7 @@ const gameSlice = createSlice({
       })
       .addCase(handleHit.fulfilled, (state, action) => {
         if (!action.payload) return;
-        const { newDeck, newCards, score, isBusted } = action.payload;
+        const { newDeck, newCards, score, isBusted, betAmount } = action.payload;
 
         state.deck = newDeck;
         state.playerHand = {
@@ -124,15 +124,15 @@ const gameSlice = createSlice({
         if (isBusted) {
           state.gameStatus = GameStatus.Finished;
           state.message = GameMessage.PlayerBust;
-          state.currentBet = 0;
           state.bettingHistory = [
             {
-              amount: state.currentBet,
+              amount: betAmount,
               won: false,
               timestamp: new Date()
             },
             ...state.bettingHistory
           ].slice(0, 5);
+          state.currentBet = 0;
           state.nextGameStatus = GameStatus.Betting;
           state.nextMessage = GameMessage.PlaceBet;
           state.stats.totalLosses++;

@@ -131,6 +131,9 @@ export const handleHit = createAsyncThunk(
     const score = calculateHandScore(newCards);
     const isBusted = score > 21;
 
+    // Store current bet amount before it's reset
+    const betAmount = state.game.currentBet;
+
     // Auto-stand on 21
     if (score === 21) {
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -141,7 +144,8 @@ export const handleHit = createAsyncThunk(
       newDeck,
       newCards,
       score,
-      isBusted
+      isBusted,
+      betAmount  // Pass the bet amount to the reducer
     };
   }
 );

@@ -125,11 +125,14 @@ const Controls: React.FC<ControlsProps> = ({
                 Repeat Bet
               </Button>
             )}
+            {chips <= 0 && (
+              <Button variant="red" onClick={onReset}>
+                Reset Game
+              </Button>
+            )}
           </>
         )}
-      </ButtonRow>
 
-      <ButtonRow>
         {gameStatus === "finished" && chips <= 0 && (
           <Button variant="red" onClick={onReset}>
             Reset Game
