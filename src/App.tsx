@@ -108,9 +108,9 @@ function App() {
           gravity={0.3}
         />
       )}
-      <div className="min-h-screen bg-gradient-to-br from-green-800 to-green-900 flex items-center justify-center">
-        <div className="bg-green-700 p-8 rounded-xl shadow-2xl w-[1000px] h-[700px] flex gap-8">
-          <div className="w-[250px] shrink-0 border-r border-green-600">
+      <div className="min-h-screen bg-gradient-to-br from-green-800 to-green-900 flex items-center justify-center p-2">
+        <div className="bg-green-700 p-4 md:p-8 rounded-xl shadow-2xl w-full max-w-[1000px] min-h-[500px] md:h-[700px] flex flex-col md:flex-row gap-4 md:gap-8">
+          <div className="hidden md:block w-[250px] shrink-0 border-r border-green-600">
             <BettingHistory bets={gameState.bettingHistory} />
             <div className="mt-4 p-4 bg-green-800 rounded-lg">
               <StatsDisplay
@@ -122,31 +122,37 @@ function App() {
           </div>
 
           <div className="flex-grow flex flex-col">
-            <div className="flex justify-between items-center mb-8">
-              <h1 className="text-4xl font-bold text-white">Blackjack</h1>
-              <div className="text-sm text-gray-200">
+            <div className="flex justify-between items-center mb-4 md:mb-8">
+              <h1 className="text-2xl md:text-4xl font-bold text-white">
+                Blackjack
+              </h1>
+              <div className="text-xs md:text-sm text-gray-200">
                 Cards Remaining: {displayedCardCount}
               </div>
             </div>
 
-            <div className="flex-grow bg-green-800 rounded-xl p-6 relative">
-              <div className="flex flex-col items-center gap-8">
-                <Hand
-                  hand={gameState.dealerHand}
-                  isDealer
-                  hideHoleCard={gameState.gameStatus === "playing"}
-                  revealIndex={gameState.revealIndex}
-                />
+            <div className="flex-grow bg-green-800 rounded-xl p-3 md:p-6 relative">
+              <div className="flex flex-col items-center justify-between min-h-[400px] md:min-h-[500px]">
+                <div className="w-full mt-2 md:mt-4">
+                  <Hand
+                    hand={gameState.dealerHand}
+                    isDealer
+                    hideHoleCard={gameState.gameStatus === "playing"}
+                    revealIndex={gameState.revealIndex}
+                  />
+                </div>
 
-                <div className="text-xl font-semibold text-white text-center p-4 rounded-lg bg-green-700 w-full">
+                <div className="text-lg md:text-xl font-semibold text-white text-center p-2 md:p-4 rounded-lg bg-green-700 w-full z-10">
                   {gameState.message}
                 </div>
 
-                <Hand hand={gameState.playerHand} />
+                <div className="w-full mb-8 md:mb-12">
+                  <Hand hand={gameState.playerHand} />
+                </div>
               </div>
             </div>
 
-            <div className="mt-8 flex flex-col items-center gap-6">
+            <div className="mt-6 md:mt-8 flex flex-col items-center gap-4 md:gap-6">
               <Chips
                 chips={gameState.chips}
                 currentBet={gameState.currentBet}
@@ -154,7 +160,7 @@ function App() {
                 canBet={canBet}
               />
 
-              <div className="flex gap-4">
+              <div className="flex gap-2 md:gap-4">
                 <Controls
                   onHit={handlePlayerHit}
                   onStand={handlePlayerStand}

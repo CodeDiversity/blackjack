@@ -1,8 +1,8 @@
-import React from 'react';
-import Card from './Card';
-import { Hand as HandType } from '../types/game';
-import { motion } from 'framer-motion';
-import { calculateHandScore } from '../utils/deckUtils';
+import React from "react";
+import Card from "./Card";
+import { Hand as HandType } from "../types/game";
+import { motion } from "framer-motion";
+import { calculateHandScore } from "../utils/deckUtils";
 
 interface HandProps {
   hand: HandType;
@@ -11,7 +11,12 @@ interface HandProps {
   revealIndex?: number;
 }
 
-const Hand: React.FC<HandProps> = ({ hand, isDealer, hideHoleCard, revealIndex }) => {
+const Hand: React.FC<HandProps> = ({
+  hand,
+  isDealer,
+  hideHoleCard,
+  revealIndex,
+}) => {
   if (!hand || !hand.cards) {
     return null; // or a loading indicator
   }
@@ -31,32 +36,31 @@ const Hand: React.FC<HandProps> = ({ hand, isDealer, hideHoleCard, revealIndex }
   return (
     <div className="flex flex-col items-center gap-2">
       <div className="text-lg font-semibold text-gray-100">
-        {isDealer ? 'Dealer' : 'Player'}: {displayScore}
+        {isDealer ? "Dealer" : "Player"}: {displayScore}
       </div>
-      <div className="relative h-36 w-[500px] flex justify-center">
-        <div className="relative w-[360px]">
+      <div className="relative h-24 md:h-36 w-full max-w-[500px]">
+        <div className="relative w-[200px] md:w-[360px] mx-auto">
           {hand.cards.map((card, index) => (
             <motion.div
               key={index}
-              className="absolute"
-              style={{ left: `${index * 120}px` }}
-              initial={{ opacity: 0, scale: 0.3, x: 200 }}
-              animate={{ 
-                opacity: isDealer && index > (revealIndex ?? -1) ? 0 : 1,
-                scale: 1,
-                x: 0
+              className="absolute scale-75 md:scale-100"
+              style={{
+                left: `${index * (window.innerWidth < 768 ? 40 : 90)}px`,
               }}
-              transition={{ 
+              initial={{ opacity: 0, scale: 0.3, x: 200 }}
+              animate={{
+                opacity: isDealer && index > (revealIndex ?? -1) ? 0 : 1,
+                scale: window.innerWidth < 768 ? 0.75 : 1,
+                x: 0,
+              }}
+              transition={{
                 type: "spring",
                 stiffness: 260,
                 damping: 20,
-                delay: index * 0.1
+                delay: index * 0.1,
               }}
             >
-              <Card 
-                card={card} 
-                isHidden={hideHoleCard && index === 1}
-              />
+              <Card card={card} isHidden={hideHoleCard && index === 1} />
             </motion.div>
           ))}
         </div>

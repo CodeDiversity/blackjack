@@ -35,20 +35,20 @@ const Controls: React.FC<ControlsProps> = ({
   const canAct = gameStatus === "playing";
 
   return (
-    <div className="grid gap-2 min-w-[280px] h-[100px]">
-      <div className="flex gap-2">
+    <div className="grid gap-2 min-w-[280px] h-[80px] md:h-[100px]">
+      <div className="flex gap-1 md:gap-2">
         {canAct && (
           <>
             <button
               onClick={onStand}
-              className="w-[90px] h-[45px] bg-red-600 hover:bg-red-700 text-white rounded-lg
+              className="w-[70px] md:w-[90px] h-[40px] md:h-[45px] text-sm md:text-base bg-red-600 hover:bg-red-700 text-white rounded-lg
                 transition-colors font-semibold"
             >
               Stand
             </button>
             <button
               onClick={onHit}
-              className="w-[90px] h-[45px] bg-green-600 hover:bg-green-700 text-white rounded-lg
+              className="w-[70px] md:w-[90px] h-[40px] md:h-[45px] text-sm md:text-base bg-green-600 hover:bg-green-700 text-white rounded-lg
                 transition-colors font-semibold"
             >
               Hit
@@ -57,7 +57,7 @@ const Controls: React.FC<ControlsProps> = ({
             {canDoubleDown && (
               <button
                 onClick={onDoubleDown}
-                className="w-[90px] h-[45px] bg-purple-600 hover:bg-purple-700 text-white rounded-lg
+                className="w-[70px] md:w-[90px] h-[40px] md:h-[45px] text-sm md:text-base bg-purple-600 hover:bg-purple-700 text-white rounded-lg
                   transition-colors font-semibold"
               >
                 Double
@@ -71,7 +71,7 @@ const Controls: React.FC<ControlsProps> = ({
             {canDealCards && (
               <button
                 onClick={onDeal}
-                className="w-[90px] h-[45px] bg-yellow-600 text-white rounded-lg hover:bg-yellow-700
+                className="w-[70px] md:w-[90px] h-[40px] md:h-[45px] text-sm md:text-base bg-yellow-600 text-white rounded-lg hover:bg-yellow-700
                   transition-colors font-semibold"
               >
                 Deal
@@ -80,7 +80,7 @@ const Controls: React.FC<ControlsProps> = ({
             {previousBet > 0 && chips >= previousBet && (
               <button
                 onClick={onPlacePreviousBet}
-                className="w-[90px] h-[45px] bg-yellow-600 text-white rounded-lg hover:bg-yellow-700
+                className="w-[70px] md:w-[90px] h-[40px] md:h-[45px] text-sm md:text-base bg-yellow-600 text-white rounded-lg hover:bg-yellow-700
                   transition-colors font-semibold"
               >
                 Repeat Bet
@@ -94,7 +94,7 @@ const Controls: React.FC<ControlsProps> = ({
         {gameStatus === "finished" && chips <= 0 && (
           <button
             onClick={onReset}
-            className="w-[90px] h-[45px] bg-red-600 text-white rounded-lg hover:bg-red-700
+            className="w-[70px] md:w-[90px] h-[40px] md:h-[45px] text-sm md:text-base bg-red-600 text-white rounded-lg hover:bg-red-700
               transition-colors font-semibold"
           >
             Reset Game
