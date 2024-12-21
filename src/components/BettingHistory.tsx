@@ -25,10 +25,15 @@ const BetItem = styled.div<{ won: boolean }>`
   justify-content: space-between;
   align-items: center;
   padding: 0.5rem;
-  background-color: ${({ won }) => (won ? "#31ba63" : "#991b1b")};
+  background-color: ${({ won }) => (won ? "#16a34a" : "#991b1b")};
   border-radius: 0.375rem;
   color: white;
   font-size: 0.875rem;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: ${({ won }) => (won ? "#15803d" : "#7f1d1d")};
+  }
 `;
 
 const Amount = styled.span`

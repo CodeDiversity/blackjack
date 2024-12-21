@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 import Confetti from "react-confetti";
 import { useAppDispatch, useAppSelector } from "./store/hooks";
@@ -31,6 +31,8 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThunkDispatch, UnknownAction } from "@reduxjs/toolkit";
 import { RootState } from "./store/store";
 import StatsDisplay from "./components/StatsDisplay";
+import OptionsMenu from "./components/OptionsMenu";
+import { loadOptions, saveOptions } from "./utils/optionsStorage";
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -201,6 +203,14 @@ function App() {
   const canBet = useAppSelector(selectCanBet);
   const canDealCards = useAppSelector(selectCanDealCards);
 
+  // Add to state
+  const [showConfetti, setShowConfetti] = useState(
+    () => loadOptions().showConfetti
+  );
+  const [showCardCount, setShowCardCount] = useState(
+    () => loadOptions().showCardCount
+  );
+
   // Action handlers
   const handleStartNewHand = () => dispatch(startNewHand());
   const handlePlayerHit = () => dispatch(handleHit());
@@ -244,9 +254,26 @@ function App() {
 
   // Watch for wins and trigger confetti
 
+  // Add handlers to save options when changed
+  const handleToggleConfetti = () => {
+    setShowConfetti((prev) => {
+      const newValue = !prev;
+      saveOptions({ showConfetti: newValue, showCardCount });
+      return newValue;
+    });
+  };
+
+  const handleToggleCardCount = () => {
+    setShowCardCount((prev) => {
+      const newValue = !prev;
+      saveOptions({ showConfetti, showCardCount: newValue });
+      return newValue;
+    });
+  };
+
   return (
     <ErrorBoundary>
-      {gameState.showConfetti && (
+      {showConfetti && gameState.showConfetti && (
         <Confetti
           width={window.innerWidth}
           height={window.innerHeight}
@@ -271,7 +298,17 @@ function App() {
           <MainContent>
             <Header>
               <Title>Blackjack</Title>
-              <CardCount>Cards Remaining: {displayedCardCount}</CardCount>
+              <div className="flex items-center gap-4">
+                {showCardCount && (
+                  <CardCount>Cards Remaining: {displayedCardCount}</CardCount>
+                )}
+                <OptionsMenu
+                  showConfetti={showConfetti}
+                  showCardCount={showCardCount}
+                  onToggleConfetti={handleToggleConfetti}
+                  onToggleCardCount={handleToggleCardCount}
+                />
+              </div>
             </Header>
 
             <GameArea>

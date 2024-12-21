@@ -8,9 +8,22 @@ const Container = styled.div`
   color: #e2e8f0;
 `;
 
-const Stat = styled.span`
+const Stat = styled.span<{ type: "win" | "loss" | "push" }>`
   display: flex;
   align-items: center;
+  color: ${({ type }) => {
+    switch (type) {
+      case "win":
+        return "#4ade80"; // bright green
+      case "loss":
+        return "#f87171"; // bright red
+      case "push":
+        return "#fbbf24"; // bright yellow
+      default:
+        return "#e2e8f0";
+    }
+  }};
+  font-weight: 600;
 `;
 
 interface StatsDisplayProps {
@@ -26,9 +39,9 @@ const StatsDisplay: React.FC<StatsDisplayProps> = ({
 }) => {
   return (
     <Container>
-      <Stat>Wins: {wins}</Stat>
-      <Stat>Losses: {losses}</Stat>
-      <Stat>Pushes: {pushes}</Stat>
+      <Stat type="win">Wins: {wins}</Stat>
+      <Stat type="loss">Losses: {losses}</Stat>
+      <Stat type="push">Pushes: {pushes}</Stat>
     </Container>
   );
 };

@@ -98,12 +98,13 @@ const Controls: React.FC<ControlsProps> = ({
       <ButtonRow>
         {canAct && (
           <>
-            <Button variant="red" onClick={onStand}>
-              Stand
-            </Button>
             <Button variant="green" onClick={onHit}>
               Hit
             </Button>
+            <Button variant="red" onClick={onStand}>
+              Stand
+            </Button>
+
             {canDoubleDown && (
               <Button variant="purple" onClick={onDoubleDown}>
                 Double

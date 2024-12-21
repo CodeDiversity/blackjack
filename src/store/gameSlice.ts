@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { GameState, GameStatus, GameMessage } from '../types/game';
+import { GameState, GameStatus, GameMessage, Hand } from '../types/game';
 import { INITIAL_CHIPS } from '../utils/betUtils';
 import { startNewHand, handleDealerTurn, handleHit, handleDoubleDown } from './gameThunks';
 import { calculateHandScore } from '../utils/deckUtils';
@@ -48,7 +48,7 @@ const gameSlice = createSlice({
       state.currentBet = 0;
       state.revealIndex = -1;
     },
-    resetGame: (state) => {
+    resetGame: () => {
       localStorage.removeItem('blackjack-state');
       return initialState;
     },
