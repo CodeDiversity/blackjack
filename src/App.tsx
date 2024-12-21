@@ -6,7 +6,12 @@ import {
   selectCanBet,
   selectCanDealCards,
 } from "./store/selectors";
-import { startNewGame, resetGame, placeBet, transitionToBetting } from "./store/gameSlice";
+import {
+  startNewGame,
+  resetGame,
+  placeBet,
+  transitionToBetting,
+} from "./store/gameSlice";
 import {
   startNewHand,
   handleHit,
@@ -22,7 +27,7 @@ import BettingHistory from "./components/BettingHistory";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { AnyAction, ThunkDispatch } from "@reduxjs/toolkit";
 import { RootState } from "./store/store";
-import StatsDisplay from './components/StatsDisplay';
+import StatsDisplay from "./components/StatsDisplay";
 import { useEffect } from "react";
 
 function App() {
@@ -44,7 +49,7 @@ function App() {
     try {
       await dispatch(handleStand()).unwrap();
     } catch (error) {
-      console.error('Error during stand:', error);
+      console.error("Error during stand:", error);
     }
   };
   const handlePlacePreviousBet = () => dispatch(placePreviousBet());
@@ -60,23 +65,23 @@ function App() {
         await dispatch(handleDealerTurn()).unwrap();
       }
     } catch (error) {
-      console.error('Error during double down:', error);
+      console.error("Error during double down:", error);
     }
   };
 
   useEffect(() => {
     if (gameState.nextGameStatus) {
-      console.log('Setting up transition timer with:', {
+      console.log("Setting up transition timer with:", {
         nextStatus: gameState.nextGameStatus,
-        nextMessage: gameState.nextMessage
+        nextMessage: gameState.nextMessage,
       });
       const timer = setTimeout(() => {
-        console.log('Transitioning to betting state');
+        console.log("Transitioning to betting state");
         dispatch(transitionToBetting());
       }, 4000);
       return () => clearTimeout(timer);
     }
-  }, [gameState.nextGameStatus, dispatch]);
+  }, [gameState.nextGameStatus, dispatch, gameState.nextMessage]);
 
   return (
     <ErrorBoundary>
@@ -85,7 +90,7 @@ function App() {
           <div className="w-[250px] shrink-0 border-r border-green-600">
             <BettingHistory bets={gameState.bettingHistory} />
             <div className="mt-4 p-4 bg-green-800 rounded-lg">
-              <StatsDisplay 
+              <StatsDisplay
                 wins={gameState.stats.totalWins}
                 losses={gameState.stats.totalLosses}
                 pushes={gameState.stats.totalPushes}
