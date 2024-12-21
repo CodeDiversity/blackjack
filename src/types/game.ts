@@ -17,15 +17,34 @@ export interface BetResult {
   timestamp: Date;
 }
 
+export enum GameStatus {
+  Betting = 'betting',
+  Dealing = 'dealing',
+  Playing = 'playing',
+  DealerTurn = 'dealerTurn',
+  Finished = 'finished'
+}
+
+export enum GameMessage {
+  PlaceBet = 'Place your bet!',
+  DealingCards = 'Dealing cards...',
+  YourTurn = 'Your turn!',
+  DealerTurn = "Dealer's turn...",
+  PlayerBust = 'Bust! Dealer wins!',
+  Push = 'Push!',
+  PlayerWins = 'You win!',
+  DealerWins = 'Dealer wins!'
+}
+
 export interface GameState {
   playerHand: Hand;
   dealerHand: Hand;
   deck: Card[];
-  gameStatus: 'betting' | 'dealing' | 'playing' | 'dealerTurn' | 'finished';
+  gameStatus: GameStatus;
   message: string;
   chips: number;
   currentBet: number;
-  previousBet: number; // Added to track previous bet
+  previousBet: number;
   revealIndex: number;
   bettingHistory: BetResult[];
   stats: {
@@ -33,6 +52,6 @@ export interface GameState {
     totalLosses: number;
     totalPushes: number;
   };
-  nextGameStatus?: 'betting' | 'dealing' | 'playing' | 'dealerTurn' | 'finished';
+  nextGameStatus?: GameStatus;
   nextMessage?: string;
 }

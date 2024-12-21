@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { GameState } from '../types/game';
+import { GameState, GameStatus, GameMessage } from '../types/game';
 import { INITIAL_CHIPS } from '../utils/betUtils';
 import { startNewHand, handleDealerTurn, handleHit, handleDoubleDown } from './gameThunks';
 import { calculateHandScore } from '../utils/deckUtils';
@@ -16,8 +16,8 @@ const initialState: GameState = {
     isBusted: false
   },
   deck: [],
-  gameStatus: 'betting',
-  message: 'Place your bet!',
+  gameStatus: GameStatus.Betting,
+  message: GameMessage.PlaceBet,
   chips: INITIAL_CHIPS,
   currentBet: 0,
   previousBet: 0,
@@ -35,13 +35,13 @@ const gameSlice = createSlice({
   initialState,
   reducers: {
     placeBet: (state, action: PayloadAction<number>) => {
-      if (state.gameStatus !== 'betting' || state.chips < action.payload) return;
+      if (state.gameStatus !== GameStatus.Betting || state.chips < action.payload) return;
       state.chips -= action.payload;
       state.currentBet += action.payload;
     },
     startNewGame: (state) => {
-      state.gameStatus = 'betting';
-      state.message = 'Place your bet!';
+      state.gameStatus = GameStatus.Betting;
+      state.message = GameMessage.PlaceBet;
       state.playerHand = { cards: [], score: 0, isBusted: false };
       state.dealerHand = { cards: [], score: 0, isBusted: false };
       state.currentBet = 0;
@@ -51,7 +51,7 @@ const gameSlice = createSlice({
       localStorage.removeItem('blackjack-state');
       return initialState;
     },
-    setGameStatus: (state, action: PayloadAction<{ status: GameState['gameStatus']; message: string }>) => {
+    setGameStatus: (state, action: PayloadAction<{ status: GameStatus; message: string }>) => {
       state.gameStatus = action.payload.status;
       state.message = action.payload.message;
     },
@@ -68,7 +68,7 @@ const gameSlice = createSlice({
       });
       if (state.nextGameStatus) {
         state.gameStatus = state.nextGameStatus;
-        state.message = state.nextMessage || 'Place your bet!';
+        state.message = state.nextMessage || GameMessage.PlaceBet;
         state.nextGameStatus = undefined;
         state.nextMessage = undefined;
         state.playerHand = { cards: [], score: 0, isBusted: false };
@@ -80,8 +80,8 @@ const gameSlice = createSlice({
     builder
       .addCase(startNewHand.pending, (state) => {
         console.log('Dealing pending...');
-        state.gameStatus = 'dealing';
-        state.message = 'Dealing cards...';
+        state.gameStatus = GameStatus.Dealing;
+        state.message = GameMessage.DealingCards;
         state.playerHand = { cards: [], score: 0, isBusted: false };
         state.dealerHand = { cards: [], score: 0, isBusted: false };
         state.revealIndex = -1;
@@ -103,8 +103,8 @@ const gameSlice = createSlice({
           score: calculateHandScore(dealerCards),
           isBusted: false
         };
-        state.gameStatus = 'playing';
-        state.message = 'Your turn!';
+        state.gameStatus = GameStatus.Playing;
+        state.message = GameMessage.YourTurn;
         state.revealIndex = 1;
         state.previousBet = previousBet;
       })
@@ -120,8 +120,8 @@ const gameSlice = createSlice({
         };
 
         if (isBusted) {
-          state.gameStatus = 'finished';
-          state.message = 'Bust! Dealer wins!';
+          state.gameStatus = GameStatus.Finished;
+          state.message = GameMessage.PlayerBust;
           state.currentBet = 0;
           state.bettingHistory = [
             {
@@ -131,11 +131,14 @@ const gameSlice = createSlice({
             },
             ...state.bettingHistory
           ].slice(0, 5);
+          state.nextGameStatus = GameStatus.Betting;
+          state.nextMessage = GameMessage.PlaceBet;
+          state.stats.totalLosses++;
         }
       })
       .addCase(handleDealerTurn.pending, (state) => {
-        state.gameStatus = 'dealerTurn';
-        state.message = "Dealer's turn...";
+        state.gameStatus = GameStatus.DealerTurn;
+        state.message = GameMessage.DealerTurn;
         console.log("Dealer's turn...");
         state.revealIndex = state.dealerHand.cards.length - 1;
       })
@@ -156,7 +159,7 @@ const gameSlice = createSlice({
         state.deck = currentDeck;
         state.dealerHand = dealerResults[dealerResults.length - 1];
         state.revealIndex = state.dealerHand.cards.length - 1;
-        state.gameStatus = 'finished';
+        state.gameStatus = GameStatus.Finished;
         state.message = winnings.message + ` (Dealer: ${finalScore})`;
         state.chips += winnings.amount;
         state.currentBet = 0;
@@ -169,8 +172,8 @@ const gameSlice = createSlice({
           ...state.bettingHistory
         ].slice(0, 5);
 
-        state.nextGameStatus = 'betting';
-        state.nextMessage = 'Place your bet!';
+        state.nextGameStatus = GameStatus.Betting;
+        state.nextMessage = GameMessage.PlaceBet;
       })
       .addCase(handleDoubleDown.fulfilled, (state, action) => {
         if (!action.payload) return;
@@ -186,8 +189,8 @@ const gameSlice = createSlice({
         };
 
         if (isBusted) {
-          state.gameStatus = 'finished';
-          state.message = 'Bust! Dealer wins!';
+          state.gameStatus = GameStatus.Finished;
+          state.message = GameMessage.PlayerBust;
           state.currentBet = 0;
           state.bettingHistory = [
             {
@@ -198,8 +201,8 @@ const gameSlice = createSlice({
             ...state.bettingHistory
           ].slice(0, 5);
         } else {
-          state.gameStatus = 'dealerTurn';
-          state.message = "Dealer's turn...";
+          state.gameStatus = GameStatus.DealerTurn;
+          state.message = GameMessage.DealerTurn;
         }
       });
   }
