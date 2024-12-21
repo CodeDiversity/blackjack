@@ -1,24 +1,32 @@
+import { useAppDispatch, useAppSelector } from './store/hooks';
+import { selectGameState, selectCanDoubleDown, selectDisplayedCardCount } from './store/selectors';
+import { startNewGame, resetGame } from './store/gameSlice';
+import { startNewHand, handleHit, handleDealerTurn, placePreviousBet, handleDoubleDown, handleStand, placeBet } from './store/gameThunks';
 import Hand from "./components/Hand";
 import Controls from "./components/Controls";
 import Chips from "./components/Chips";
-import { useGameLogic } from "./hooks/useGameLogic";
 import BettingHistory from "./components/BettingHistory";
 import ErrorBoundary from "./components/ErrorBoundary";
 
 function App() {
-  const {
-    gameState,
-    placeBet,
-    placePreviousBet,
-    startNewHand,
-    handleHit,
-    handleStand,
-    handleDoubleDown,
-    startNewGame,
-    resetGame,
-    canDoubleDown,
-    displayedCardCount
-  } = useGameLogic();
+  const dispatch = useAppDispatch();
+  const gameState = useAppSelector(selectGameState);
+  const canDoubleDown = useAppSelector(selectCanDoubleDown);
+  const displayedCardCount = useAppSelector(selectDisplayedCardCount);
+
+  const handleStartNewHand = () => dispatch(startNewHand());
+  const handlePlayerHit = () => dispatch(handleHit());
+  const handlePlayerStand = () => dispatch(handleStand());
+  const handlePlacePreviousBet = () => dispatch(placePreviousBet());
+  const handleStartNewGame = () => dispatch(startNewGame());
+  const handleResetGame = () => dispatch(resetGame());
+  const handlePlaceBet = (amount: number) => dispatch(placeBet(amount));
+  const handleDoubleDown = async () => {
+    const result = await dispatch(handleDoubleDown()).unwrap();
+    if (result && !result.isBusted) {
+      await dispatch(handleDealerTurn());
+    }
+  };
 
   return (
     <ErrorBoundary>
@@ -56,7 +64,7 @@ function App() {
                 <Chips
                   chips={gameState.chips}
                   currentBet={gameState.currentBet}
-                  onPlaceBet={placeBet}
+                  onPlaceBet={handlePlaceBet}
                   canBet={gameState.gameStatus === "betting"}
                 />
 
@@ -64,7 +72,7 @@ function App() {
                   {gameState.gameStatus === "betting" &&
                     gameState.currentBet > 0 && (
                       <button
-                        onClick={startNewHand}
+                        onClick={handleStartNewHand}
                         className="px-6 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700
                         transition-colors font-semibold"
                       >
@@ -73,12 +81,12 @@ function App() {
                     )}
 
                   <Controls
-                    onHit={handleHit}
-                    onStand={handleStand}
+                    onHit={handlePlayerHit}
+                    onStand={handlePlayerStand}
                     onDoubleDown={handleDoubleDown}
-                    onNewGame={startNewGame}
-                    onReset={resetGame}
-                    onPlacePreviousBet={placePreviousBet}
+                    onNewGame={handleStartNewGame}
+                    onReset={handleResetGame}
+                    onPlacePreviousBet={handlePlacePreviousBet}
                     gameStatus={gameState.gameStatus}
                     previousBet={gameState.previousBet}
                     chips={gameState.chips}
