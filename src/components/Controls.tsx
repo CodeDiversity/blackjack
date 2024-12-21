@@ -41,22 +41,22 @@ const Button = styled.button<{
       case "red":
         return `
           background-color: #dc2626;
-          &:hover { background-color: #b91c1c; }
+          &:hover { background-color: #ef4444; }
         `;
       case "green":
         return `
           background-color: #16a34a;
-          &:hover { background-color: #15803d; }
+          &:hover { background-color: #22c55e; }
         `;
       case "purple":
         return `
           background-color: #9333ea;
-          &:hover { background-color: #7e22ce; }
+          &:hover { background-color: #a855f7; }
         `;
       case "yellow":
         return `
           background-color: #ca8a04;
-          &:hover { background-color: #a16207; }
+          &:hover { background-color: #eab308; }
         `;
     }
   }}
@@ -68,13 +68,15 @@ interface ControlsProps {
   onDoubleDown: () => void;
   onNewGame: () => void;
   onReset: () => void;
-  onPlacePreviousBet: () => void;
+  onPlacePreviousBet: (multiplier?: number) => void;
   onDeal: () => void;
   gameStatus: string;
   previousBet: number;
   chips: number;
   canDoubleDown: boolean;
   canDealCards: boolean;
+  onClearBet: () => void;
+  currentBet: number;
 }
 
 const Controls: React.FC<ControlsProps> = ({
@@ -89,6 +91,8 @@ const Controls: React.FC<ControlsProps> = ({
   chips,
   canDoubleDown,
   canDealCards,
+  onClearBet,
+  currentBet,
 }) => {
   const isBetting = gameStatus === "betting";
   const canAct = gameStatus === "playing";
@@ -120,10 +124,38 @@ const Controls: React.FC<ControlsProps> = ({
                 Deal
               </Button>
             )}
-            {previousBet > 0 && chips >= previousBet && (
-              <Button variant="yellow" onClick={onPlacePreviousBet}>
-                Repeat Bet
+            {currentBet > 0 && (
+              <Button variant="red" onClick={onClearBet}>
+                Clear Bet
               </Button>
+            )}
+            {previousBet > 0 && (
+              <>
+                {chips >= previousBet && (
+                  <Button
+                    variant="yellow"
+                    onClick={() => onPlacePreviousBet(1)}
+                  >
+                    {previousBet}
+                  </Button>
+                )}
+                {chips >= previousBet * 2 && (
+                  <Button
+                    variant="yellow"
+                    onClick={() => onPlacePreviousBet(2)}
+                  >
+                    {previousBet * 2}
+                  </Button>
+                )}
+                {chips >= previousBet * 3 && (
+                  <Button
+                    variant="yellow"
+                    onClick={() => onPlacePreviousBet(3)}
+                  >
+                    {previousBet * 3}
+                  </Button>
+                )}
+              </>
             )}
             {chips <= 0 && (
               <Button variant="red" onClick={onReset}>

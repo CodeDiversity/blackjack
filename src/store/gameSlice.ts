@@ -76,6 +76,10 @@ const gameSlice = createSlice({
         state.dealerHand = { cards: [], score: 0, isBusted: false };
         state.showConfetti = false;
       }
+    },
+    clearBet: (state) => {
+      state.chips += state.currentBet;
+      state.currentBet = 0;
     }
   },
   extraReducers: (builder) => {
@@ -211,5 +215,5 @@ const gameSlice = createSlice({
   }
 });
 
-export const { placeBet, startNewGame, resetGame, setGameStatus, updateDealerHand, transitionToBetting } = gameSlice.actions;
+export const { placeBet, startNewGame, resetGame, setGameStatus, updateDealerHand, transitionToBetting, clearBet } = gameSlice.actions;
 export default gameSlice.reducer; 

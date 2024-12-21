@@ -14,6 +14,7 @@ import {
   resetGame,
   placeBet,
   transitionToBetting,
+  clearBet,
 } from "./store/gameSlice";
 import {
   startNewHand,
@@ -33,7 +34,9 @@ import { RootState } from "./store/store";
 import StatsDisplay from "./components/StatsDisplay";
 import OptionsMenu from "./components/OptionsMenu";
 import { loadOptions, saveOptions } from "./utils/optionsStorage";
+import { AppDispatch } from "./types/store";
 
+// Main container for the entire app
 const AppContainer = styled.div`
   min-height: 100vh;
   background-image: linear-gradient(to bottom right, #166534, #14532d);
@@ -42,27 +45,32 @@ const AppContainer = styled.div`
   justify-content: center;
   padding: 0.5rem;
 `;
+AppContainer.displayName = "AppContainer";
 
-const GameContainer = styled.div`
+// Container for the game area with green background
+const BlackjackTable = styled.div`
   background-color: #15803d;
-  padding: 1rem;
+  padding: 1.5rem;
   border-radius: 0.75rem;
   box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
   width: 100%;
-  max-width: 1000px;
-  min-height: 500px;
-  height: 700px;
+  max-width: 1200px;
+  height: 95vh;
+  max-height: 1200px;
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  overflow: hidden;
 
   @media (min-width: 768px) {
-    padding: 2rem;
+    padding: 2.5rem;
     flex-direction: row;
     gap: 2rem;
   }
 `;
+BlackjackTable.displayName = "BlackjackTable";
 
+// Left sidebar containing betting history and stats
 const Sidebar = styled.div`
   display: none;
   width: 250px;
@@ -73,13 +81,18 @@ const Sidebar = styled.div`
     display: block;
   }
 `;
+Sidebar.displayName = "Sidebar";
 
+// Right side content area containing game and controls
 const MainContent = styled.div`
   flex-grow: 1;
   display: flex;
   flex-direction: column;
+  min-height: 0;
 `;
+MainContent.displayName = "MainContent";
 
+// Top bar containing title and options
 const Header = styled.div`
   display: flex;
   justify-content: space-between;
@@ -90,7 +103,9 @@ const Header = styled.div`
     margin-bottom: 2rem;
   }
 `;
+Header.displayName = "Header";
 
+// Game title text
 const Title = styled.h1`
   font-size: 1.5rem;
   font-weight: bold;
@@ -100,7 +115,9 @@ const Title = styled.h1`
     font-size: 2.25rem;
   }
 `;
+Title.displayName = "Title";
 
+// Cards remaining counter text
 const CardCount = styled.div`
   font-size: 0.75rem;
   color: #e2e8f0;
@@ -109,63 +126,90 @@ const CardCount = styled.div`
     font-size: 0.875rem;
   }
 `;
+CardCount.displayName = "CardCount";
 
-const GameArea = styled.div`
+// Green area containing the game table
+const PlayingField = styled.div`
   flex-grow: 1;
   background-color: #166534;
   border-radius: 0.75rem;
-  padding: 0.75rem;
+  padding: 1rem;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  min-height: 550px;
 
   @media (min-width: 768px) {
-    padding: 1.5rem;
+    padding: 2rem;
+    min-height: 650px;
   }
 `;
+PlayingField.displayName = "PlayingField";
 
-const ControlsArea = styled.div`
-  margin-top: 1.5rem;
+// Area containing chips and game controls
+const ActionPanel = styled.div`
+  margin-top: 1rem;
+  padding-bottom: 0.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem;
 
   @media (min-width: 768px) {
-    margin-top: 2rem;
-    gap: 1.5rem;
+    margin-top: 1.5rem;
+    gap: 1rem;
   }
 `;
+ActionPanel.displayName = "ActionPanel";
 
+// Container for stats display in sidebar
 const StatsContainer = styled.div`
   margin-top: 1rem;
   padding: 1rem;
   background-color: #166534;
   border-radius: 0.5rem;
 `;
+StatsContainer.displayName = "StatsContainer";
 
-const GameContent = styled.div`
+// Container for dealer/player hands and message
+const TableLayout = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  min-height: 400px;
+  flex-grow: 1;
+  height: 100%;
+  padding: 0;
+  position: relative;
 
   @media (min-width: 768px) {
-    min-height: 500px;
+    padding: 1.5rem 0;
   }
 `;
+TableLayout.displayName = "TableLayout";
 
-const HandContainer = styled.div<{ isDealer?: boolean }>`
+// Container for individual hands (dealer or player)
+const CardHand = styled.div<{ isDealer?: boolean }>`
   width: 100%;
-  margin-top: ${({ isDealer }) => (isDealer ? "0.5rem" : "0")};
-  margin-bottom: ${({ isDealer }) => (isDealer ? "0" : "2rem")};
+  position: relative;
+  height: 250px;
+  display: flex;
+  justify-content: center;
+  align-items: ${({ isDealer }) => (isDealer ? "flex-start" : "flex-end")};
+  overflow: visible;
+  padding: 1rem;
+  margin: ${({ isDealer }) => (isDealer ? "0 0 1rem 0" : "1rem 0 2rem 0")};
 
   @media (min-width: 768px) {
-    margin-top: ${({ isDealer }) => (isDealer ? "1rem" : "0")};
-    margin-bottom: ${({ isDealer }) => (isDealer ? "0" : "3rem")};
+    height: 300px;
+    padding: 1.5rem;
   }
 `;
+CardHand.displayName = "CardHand";
 
-const Message = styled.div`
+// Game status message display
+const GameMessage = styled.div`
   font-size: 1.125rem;
   font-weight: 600;
   color: white;
@@ -181,8 +225,10 @@ const Message = styled.div`
     padding: 1rem;
   }
 `;
+GameMessage.displayName = "GameMessage";
 
-const ControlsWrapper = styled.div`
+// Container for control buttons
+const ButtonGroup = styled.div`
   display: flex;
   gap: 0.5rem;
 
@@ -190,13 +236,15 @@ const ControlsWrapper = styled.div`
     gap: 1rem;
   }
 `;
+ButtonGroup.displayName = "ButtonGroup";
 
 function App() {
   const dispatch = useAppDispatch() as ThunkDispatch<
     RootState,
     unknown,
     UnknownAction
-  >;
+  > &
+    AppDispatch;
   const gameState = useAppSelector(selectGameState);
   const canDoubleDown = useAppSelector(selectCanDoubleDown);
   const displayedCardCount = useAppSelector(selectDisplayedCardCount);
@@ -221,7 +269,9 @@ function App() {
       console.error("Error during stand:", error);
     }
   };
-  const handlePlacePreviousBet = () => dispatch(placePreviousBet());
+  const handlePlacePreviousBet = async (multiplier = 1) => {
+    await dispatch(placePreviousBet(multiplier));
+  };
   const handleStartNewGame = () => dispatch(startNewGame());
   const handleResetGame = () => dispatch(resetGame());
   const handlePlaceBet = (amount: number) => {
@@ -236,6 +286,9 @@ function App() {
     } catch (error) {
       console.error("Error during double down:", error);
     }
+  };
+  const handleClearBet = () => {
+    dispatch(clearBet());
   };
 
   useEffect(() => {
@@ -283,7 +336,7 @@ function App() {
         />
       )}
       <AppContainer>
-        <GameContainer>
+        <BlackjackTable>
           <Sidebar>
             <BettingHistory bets={gameState.bettingHistory} />
             <StatsContainer>
@@ -311,26 +364,26 @@ function App() {
               </div>
             </Header>
 
-            <GameArea>
-              <GameContent>
-                <HandContainer isDealer>
+            <PlayingField>
+              <TableLayout>
+                <CardHand isDealer>
                   <Hand
                     hand={gameState.dealerHand}
                     isDealer
                     hideHoleCard={gameState.gameStatus === "playing"}
                     revealIndex={gameState.revealIndex}
                   />
-                </HandContainer>
+                </CardHand>
 
-                <Message>{gameState.message}</Message>
+                <GameMessage>{gameState.message}</GameMessage>
 
-                <HandContainer>
+                <CardHand>
                   <Hand hand={gameState.playerHand} />
-                </HandContainer>
-              </GameContent>
-            </GameArea>
+                </CardHand>
+              </TableLayout>
+            </PlayingField>
 
-            <ControlsArea>
+            <ActionPanel>
               <Chips
                 chips={gameState.chips}
                 currentBet={gameState.currentBet}
@@ -338,7 +391,7 @@ function App() {
                 canBet={canBet}
               />
 
-              <ControlsWrapper>
+              <ButtonGroup>
                 <Controls
                   onHit={handlePlayerHit}
                   onStand={handlePlayerStand}
@@ -352,11 +405,13 @@ function App() {
                   chips={gameState.chips}
                   canDoubleDown={canDoubleDown}
                   canDealCards={canDealCards}
+                  onClearBet={handleClearBet}
+                  currentBet={gameState.currentBet}
                 />
-              </ControlsWrapper>
-            </ControlsArea>
+              </ButtonGroup>
+            </ActionPanel>
           </MainContent>
-        </GameContainer>
+        </BlackjackTable>
       </AppContainer>
     </ErrorBoundary>
   );

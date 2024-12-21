@@ -1,4 +1,4 @@
-export const INITIAL_CHIPS = 1000;
+export const INITIAL_CHIPS = 5000;
 
 export function calculateWinnings(
   dealerScore: number,

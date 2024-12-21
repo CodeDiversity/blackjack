@@ -102,18 +102,20 @@ export const handleDealerTurn = createAsyncThunk(
   }
 );
 
-export const placePreviousBet = createAsyncThunk<StartHandResult | null, void, { state: RootState }>(
+export const placePreviousBet = createAsyncThunk<StartHandResult | null, number | void, { state: RootState }>(
   'game/placePreviousBet',
-  async (_, { getState, dispatch }) => {
+  async (multiplier = 1, { getState, dispatch }) => {
     const state = getState();
+    const betAmount = state.game.previousBet * (typeof multiplier === 'number' ? multiplier : 1);
+
     if (
       state.game.gameStatus !== GameStatus.Betting ||
       state.game.previousBet === 0 ||
-      state.game.chips < state.game.previousBet ||
+      state.game.chips < betAmount ||
       state.game.currentBet > 0
     ) return null;
 
-    await dispatch(placeBet(state.game.previousBet));
+    await dispatch(placeBet(betAmount));
     const result = await (dispatch as AppDispatch)(startNewHand()).unwrap();
     return result;
   }

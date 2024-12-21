@@ -23,6 +23,7 @@ const CardFace = styled.div<{ isHidden: boolean }>`
   backface-visibility: hidden;
   border-radius: 0.5rem;
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  transition: transform 0.6s;
   transform: ${({ isHidden }) =>
     isHidden ? "rotateY(180deg)" : "rotateY(0deg)"};
 `;
@@ -32,8 +33,6 @@ const FrontFace = styled(CardFace)`
   display: flex;
   flex-direction: column;
   padding: 0.5rem;
-  transform: ${({ isHidden }) =>
-    isHidden ? "rotateY(180deg)" : "rotateY(0deg)"};
 `;
 
 const BackFace = styled(CardFace)`
@@ -50,7 +49,7 @@ const BackFace = styled(CardFace)`
   );
   background-size: 20px 20px;
   transform: ${({ isHidden }) =>
-    isHidden ? "rotateY(0deg)" : "rotateY(180deg)"};
+    isHidden ? "rotateY(360deg)" : "rotateY(180deg)"};
 `;
 
 const Corner = styled.div<{ isRed?: boolean; isBottom?: boolean }>`
