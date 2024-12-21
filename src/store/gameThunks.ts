@@ -13,31 +13,23 @@ const needsNewDeck = (deck: Card[]) => {
 
 export const startNewHand = createAsyncThunk(
   'game/startNewHand',
-  async (_, { getState }) => {
-    console.log('Starting new hand...');
+  async (_, { getState, dispatch }) => {
     const state = getState() as RootState;
-    console.log('Current state:', {
-      currentBet: state.game.currentBet,
-      gameStatus: state.game.gameStatus,
-      deckSize: state.game.deck.length
-    });
+    if (state.game.currentBet === 0) return null;
 
-    if (state.game.currentBet === 0) {
-      console.log('No bet placed, returning null');
-      return null;
-    }
-
-    // Always create a new deck if empty or near empty
     const currentDeck = state.game.deck.length < MIN_CARDS_BEFORE_SHUFFLE ? 
       createDeck() : 
       [...state.game.deck];
 
-    console.log('Current deck size:', currentDeck.length);
-
-    // Deal cards
     const playerCards = [currentDeck.pop()!, currentDeck.pop()!];
     const dealerCards = [currentDeck.pop()!, currentDeck.pop()!];
-    console.log('Dealt cards:', { playerCards, dealerCards });
+
+    // Auto-stand on initial 21
+    if (calculateHandScore(playerCards) === 21) {
+      setTimeout(() => {
+        dispatch(handleStand());
+      }, 1000);
+    }
 
     return {
       currentDeck,
@@ -121,7 +113,7 @@ export const placePreviousBet = createAsyncThunk(
 
 export const handleHit = createAsyncThunk(
   'game/hit',
-  async (_, { getState }) => {
+  async (_, { getState, dispatch }) => {
     const state = getState() as RootState;
     if (state.game.gameStatus !== 'playing') return null;
 
@@ -130,6 +122,13 @@ export const handleHit = createAsyncThunk(
     const newCards = [...state.game.playerHand.cards, newCard];
     const score = calculateHandScore(newCards);
     const isBusted = score > 21;
+
+    // Auto-stand on 21
+    if (score === 21) {
+      setTimeout(() => {
+        dispatch(handleStand());
+      }, 1000);
+    }
 
     return {
       newDeck,

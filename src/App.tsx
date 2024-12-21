@@ -28,7 +28,8 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { AnyAction, ThunkDispatch } from "@reduxjs/toolkit";
 import { RootState } from "./store/store";
 import StatsDisplay from "./components/StatsDisplay";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import Confetti from 'react-confetti';
 
 function App() {
   const dispatch = useAppDispatch() as ThunkDispatch<
@@ -41,6 +42,7 @@ function App() {
   const displayedCardCount = useAppSelector(selectDisplayedCardCount);
   const canBet = useAppSelector(selectCanBet);
   const canDealCards = useAppSelector(selectCanDealCards);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   // Action handlers
   const handleStartNewHand = () => dispatch(startNewHand());
@@ -83,8 +85,26 @@ function App() {
     }
   }, [gameState.nextGameStatus, dispatch, gameState.nextMessage]);
 
+  // Watch for wins and trigger confetti
+  useEffect(() => {
+    if (gameState.gameStatus === 'finished' && gameState.message.includes('You win')) {
+      setShowConfetti(true);
+      const timer = setTimeout(() => setShowConfetti(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [gameState.gameStatus, gameState.message]);
+
   return (
     <ErrorBoundary>
+      {showConfetti && (
+        <Confetti
+          width={window.innerWidth}
+          height={window.innerHeight}
+          recycle={false}
+          numberOfPieces={200}
+          gravity={0.3}
+        />
+      )}
       <div className="min-h-screen bg-gradient-to-br from-green-800 to-green-900 flex items-center justify-center">
         <div className="bg-green-700 p-8 rounded-xl shadow-2xl w-[1000px] h-[700px] flex gap-8">
           <div className="w-[250px] shrink-0 border-r border-green-600">
