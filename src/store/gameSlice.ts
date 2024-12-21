@@ -136,11 +136,12 @@ const gameSlice = createSlice({
       .addCase(handleDealerTurn.pending, (state) => {
         state.gameStatus = 'dealerTurn';
         state.message = "Dealer's turn...";
+        console.log("Dealer's turn...");
         state.revealIndex = state.dealerHand.cards.length - 1;
       })
       .addCase(handleDealerTurn.fulfilled, (state, action) => {
         if (!action.payload) return;
-        const { dealerResults, currentDeck, winnings, isBusted, finalScore } = action.payload;
+        const { dealerResults, currentDeck, winnings, finalScore } = action.payload;
         
         const betAmount = state.currentBet;
         
