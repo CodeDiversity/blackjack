@@ -12,6 +12,10 @@ interface HandProps {
 }
 
 const Hand: React.FC<HandProps> = ({ hand, isDealer, hideHoleCard, revealIndex }) => {
+  if (!hand || !hand.cards) {
+    return null; // or a loading indicator
+  }
+
   const getDisplayScore = () => {
     if (isDealer && hideHoleCard) {
       return calculateHandScore([hand.cards[0]]);

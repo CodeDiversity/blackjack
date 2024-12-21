@@ -1,9 +1,9 @@
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk } from '@reduxjs/toolkit';
 import { RootState } from './store';
 import { createDeck, calculateHandScore } from '../utils/deckUtils';
 import { calculateWinnings } from '../utils/betUtils';
 import { Card } from '../types/game';
-import { placeBet } from './gameSlice';
+import { placeBet, setGameStatus, updateDealerHand } from './gameSlice';
 
 const MIN_CARDS_BEFORE_SHUFFLE = 10;
 
@@ -14,14 +14,31 @@ const needsNewDeck = (deck: Card[]) => {
 export const startNewHand = createAsyncThunk(
   'game/startNewHand',
   async (_, { getState }) => {
+    console.log('Starting new hand...');
     const state = getState() as RootState;
-    if (state.game.currentBet === 0) return null;
+    console.log('Current state:', {
+      currentBet: state.game.currentBet,
+      gameStatus: state.game.gameStatus,
+      deckSize: state.game.deck.length
+    });
 
-    const currentDeck = needsNewDeck(state.game.deck) ? createDeck() : state.game.deck;
+    if (state.game.currentBet === 0) {
+      console.log('No bet placed, returning null');
+      return null;
+    }
+
+    // Always create a new deck if empty or near empty
+    const currentDeck = state.game.deck.length < MIN_CARDS_BEFORE_SHUFFLE ? 
+      createDeck() : 
+      [...state.game.deck];
+
+    console.log('Current deck size:', currentDeck.length);
+
+    // Deal cards
     const playerCards = [currentDeck.pop()!, currentDeck.pop()!];
     const dealerCards = [currentDeck.pop()!, currentDeck.pop()!];
+    console.log('Dealt cards:', { playerCards, dealerCards });
 
-    // Return all the data needed for the reducer
     return {
       currentDeck,
       playerCards,
@@ -33,29 +50,43 @@ export const startNewHand = createAsyncThunk(
 
 export const handleDealerTurn = createAsyncThunk(
   'game/dealerTurn',
-  async (_, { getState }) => {
+  async (_, { getState, dispatch }) => {
     const state = getState() as RootState;
     const currentDeck = [...state.game.deck];
     const dealerCards = [...state.game.dealerHand.cards];
-    const dealerScore = calculateHandScore(dealerCards);
-    const results = [];
+    let dealerScore = calculateHandScore(dealerCards);
+    
+    // Initialize results with current hand
+    const results = [{
+      cards: [...dealerCards],
+      score: dealerScore,
+      isBusted: false
+    }];
 
-    while (dealerScore < 17) {
+    while (dealerScore <= 16) {
       const newCard = currentDeck.pop()!;
       dealerCards.push(newCard);
-      results.push({
+      dealerScore = calculateHandScore(dealerCards);
+      
+      const currentResult = {
         cards: [...dealerCards],
-        score: calculateHandScore(dealerCards),
-        isBusted: calculateHandScore(dealerCards) > 21
-      });
-      await new Promise(resolve => setTimeout(resolve, 500));
+        score: dealerScore,
+        isBusted: dealerScore > 21
+      };
+      
+      results.push(currentResult);
+
+      dispatch(updateDealerHand({ 
+        hand: currentResult, 
+        message: `Dealer draws: ${dealerScore}` 
+      }));
+
+      await new Promise(resolve => setTimeout(resolve, 1500));
     }
 
-    const finalScore = calculateHandScore(dealerCards);
-    const isBusted = finalScore > 21;
-
+    const isBusted = dealerScore > 21;
     const winnings = calculateWinnings(
-      finalScore,
+      dealerScore,
       state.game.playerHand.score,
       state.game.currentBet,
       isBusted
@@ -65,7 +96,8 @@ export const handleDealerTurn = createAsyncThunk(
       dealerResults: results,
       currentDeck,
       winnings,
-      isBusted
+      isBusted,
+      finalScore: dealerScore
     };
   }
 );
@@ -137,24 +169,10 @@ export const handleDoubleDown = createAsyncThunk(
   }
 );
 
-export const handleStand = createAsyncThunk(
+export const handleStand = createAsyncThunk<void, void, { state: RootState }>(
   'game/stand',
   async (_, { dispatch }) => {
-    // First update game status
     dispatch(setGameStatus({ status: 'dealerTurn', message: "Dealer's turn..." }));
-    // Then start dealer's turn
-    return dispatch(handleDealerTurn()).unwrap();
+    await dispatch(handleDealerTurn()).unwrap();
   }
-);
-
-// Add action for setting game status
-export const setGameStatus = createSlice({
-  name: 'game/status',
-  initialState: null,
-  reducers: {
-    setStatus: (state, action: PayloadAction<{ status: GameState['gameStatus']; message: string }>) => {
-      state.gameStatus = action.payload.status;
-      state.message = action.payload.message;
-    }
-  }
-}).actions; 
+); 

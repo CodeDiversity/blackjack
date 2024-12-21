@@ -4,31 +4,22 @@ export function calculateWinnings(
   dealerScore: number,
   playerScore: number,
   currentBet: number,
-  isDealerBusted: boolean
+  dealerBusted: boolean
 ): { message: string; amount: number } {
-  if (isDealerBusted) {
-    return { 
-      message: 'Dealer busts! You win!',
-      amount: currentBet * 2 
-    };
-  }
-  
-  if (dealerScore > playerScore) {
-    return { 
-      message: 'Dealer wins!',
-      amount: 0 
-    };
-  }
-  
-  if (dealerScore < playerScore) {
-    return { 
+  if (dealerBusted || playerScore > dealerScore) {
+    return {
       message: 'You win!',
-      amount: currentBet * 2 
+      amount: currentBet * 2
+    };
+  } else if (playerScore === dealerScore) {
+    return {
+      message: 'Push!',
+      amount: currentBet
+    };
+  } else {
+    return {
+      message: 'Dealer wins!',
+      amount: 0
     };
   }
-  
-  return { 
-    message: 'Push!',
-    amount: currentBet 
-  };
 }

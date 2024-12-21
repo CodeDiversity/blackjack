@@ -14,3 +14,5 @@ export const selectCanBet = (state: RootState) => state.game.gameStatus === 'bet
 export const selectIsPlaying = (state: RootState) => state.game.gameStatus === 'playing';
 export const selectIsDealerTurn = (state: RootState) => state.game.gameStatus === 'dealerTurn';
 export const selectIsFinished = (state: RootState) => state.game.gameStatus === 'finished';
+export const selectCanDealCards = (state: RootState) => 
+  state.game.gameStatus === 'betting' && state.game.currentBet > 0;

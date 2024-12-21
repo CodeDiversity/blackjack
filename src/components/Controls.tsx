@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface ControlsProps {
   onHit: () => void;
@@ -7,10 +7,12 @@ interface ControlsProps {
   onNewGame: () => void;
   onReset: () => void;
   onPlacePreviousBet: () => void;
+  onDeal: () => void;
   gameStatus: string;
   previousBet: number;
   chips: number;
   canDoubleDown: boolean;
+  canDealCards: boolean;
 }
 
 const Controls: React.FC<ControlsProps> = ({
@@ -20,80 +22,85 @@ const Controls: React.FC<ControlsProps> = ({
   onNewGame,
   onReset,
   onPlacePreviousBet,
+  onDeal,
   gameStatus,
   previousBet,
   chips,
-  canDoubleDown
+  canDoubleDown,
+  canDealCards,
 }) => {
-  console.log('Controls render:', { gameStatus, chips });
+  console.log("Controls render:", { gameStatus, chips });
 
-  const isBetting = gameStatus === 'betting';
-  const canAct = gameStatus === 'playing';
+  const isBetting = gameStatus === "betting";
+  const canAct = gameStatus === "playing";
 
   return (
-    <div className="flex flex-wrap gap-2">
-      <button
-        onClick={onHit}
-        disabled={!canAct}
-        className={`px-6 py-3 rounded-lg font-semibold transition-colors
-          ${canAct 
-            ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-            : 'bg-gray-400 text-gray-200 cursor-not-allowed'}`}
-      >
-        Hit
-      </button>
+    <div className="grid gap-2 min-w-[280px] h-[100px]">
+      <div className="flex gap-2">
+        {canAct && (
+          <>
+            <button
+              onClick={onStand}
+              className="w-[90px] h-[45px] bg-red-600 hover:bg-red-700 text-white rounded-lg
+                transition-colors font-semibold"
+            >
+              Stand
+            </button>
+            <button
+              onClick={onHit}
+              className="w-[90px] h-[45px] bg-green-600 hover:bg-green-700 text-white rounded-lg
+                transition-colors font-semibold"
+            >
+              Hit
+            </button>
 
-      <button
-        onClick={onStand}
-        disabled={!canAct}
-        className={`px-6 py-3 rounded-lg font-semibold transition-colors
-          ${canAct 
-            ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-            : 'bg-gray-400 text-gray-200 cursor-not-allowed'}`}
-      >
-        Stand
-      </button>
+            {canDoubleDown && (
+              <button
+                onClick={onDoubleDown}
+                className="w-[90px] h-[45px] bg-purple-600 hover:bg-purple-700 text-white rounded-lg
+                  transition-colors font-semibold"
+              >
+                Double
+              </button>
+            )}
+          </>
+        )}
 
-      {canDoubleDown && (
-        <button
-          onClick={onDoubleDown}
-          disabled={!canAct}
-          className={`px-6 py-3 rounded-lg font-semibold transition-colors
-            ${canAct ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-gray-400 text-gray-200 cursor-not-allowed'}`}
-        >
-          Double Down
-        </button>
-      )}
+        {isBetting && (
+          <>
+            {canDealCards && (
+              <button
+                onClick={onDeal}
+                className="w-[90px] h-[45px] bg-yellow-600 text-white rounded-lg hover:bg-yellow-700
+                  transition-colors font-semibold"
+              >
+                Deal
+              </button>
+            )}
+            {previousBet > 0 && chips >= previousBet && (
+              <button
+                onClick={onPlacePreviousBet}
+                className="w-[90px] h-[45px] bg-yellow-600 text-white rounded-lg hover:bg-yellow-700
+                  transition-colors font-semibold"
+              >
+                Repeat Bet
+              </button>
+            )}
+          </>
+        )}
+      </div>
 
-      {gameStatus === 'finished' && (
-        <button
-          onClick={onNewGame}
-          className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700
-            transition-colors font-semibold"
-        >
-          New Game
-        </button>
-      )}
-
-      {isBetting && previousBet > 0 && chips >= previousBet && (
-        <button
-          onClick={onPlacePreviousBet}
-          className="px-6 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700
-            transition-colors font-semibold"
-        >
-          Repeat Bet (${previousBet})
-        </button>
-      )}
-
-      {gameStatus === 'finished' && chips <= 0 && (
-        <button
-          onClick={onReset}
-          className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700
-            transition-colors font-semibold"
-        >
-          Reset Game
-        </button>
-      )}
+      <div className="flex gap-2">
+        {gameStatus === "finished" && chips <= 0 && (
+          <button
+            onClick={onReset}
+            className="w-[90px] h-[45px] bg-red-600 text-white rounded-lg hover:bg-red-700
+              transition-colors font-semibold"
+          >
+            Reset Game
+          </button>
+        )}
+      </div>
     </div>
   );
 };

@@ -5,8 +5,10 @@ export const persistMiddleware: Middleware<{}, RootState> = store => next => act
   const result = next(action);
   const state = store.getState();
 
-  // Save to localStorage after state changes
-  localStorage.setItem('blackjack-state', JSON.stringify(state.game));
+  if (typeof window !== 'undefined') {
+    // Save to localStorage after state changes
+    localStorage.setItem('blackjack-state', JSON.stringify(state.game));
+  }
 
   return result;
 }; 
