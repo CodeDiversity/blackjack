@@ -2,7 +2,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import { createDeck, calculateHandScore } from '../utils/deckUtils';
 import { calculateWinnings } from '../utils/betUtils';
 import { Card } from '../types/game';
-import { placeBet, setGameStatus, updateDealerHand } from './gameSlice';
+import { placeBet, setGameStatus, updateDealerHand, clearBet } from './gameSlice';
 import { AppDispatch, RootState } from '../types/store';
 import { GameStatus, GameMessage } from '../types/game';
 
@@ -106,14 +106,18 @@ export const placePreviousBet = createAsyncThunk<StartHandResult | null, number 
   'game/placePreviousBet',
   async (multiplier = 1, { getState, dispatch }) => {
     const state = getState();
-    const betAmount = state.game.previousBet * (typeof multiplier === 'number' ? multiplier : 1);
+    const baseAmount = state.game.currentBet || state.game.previousBet;
+    const betAmount = baseAmount * (typeof multiplier === 'number' ? multiplier : 1);
 
     if (
       state.game.gameStatus !== GameStatus.Betting ||
-      state.game.previousBet === 0 ||
-      state.game.chips < betAmount ||
-      state.game.currentBet > 0
+      baseAmount === 0 ||
+      state.game.chips < betAmount
     ) return null;
+
+    if (state.game.currentBet > 0) {
+      await dispatch(clearBet());
+    }
 
     await dispatch(placeBet(betAmount));
     const result = await (dispatch as AppDispatch)(startNewHand()).unwrap();

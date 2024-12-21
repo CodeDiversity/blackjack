@@ -125,11 +125,26 @@ const Controls: React.FC<ControlsProps> = ({
               </Button>
             )}
             {currentBet > 0 && (
-              <Button variant="red" onClick={onClearBet}>
-                Clear Bet
-              </Button>
+              <>
+                <Button variant="red" onClick={onClearBet}>
+                  Clear Bet
+                </Button>
+                {chips >= currentBet * 2 && (
+                  <Button
+                    variant="purple"
+                    onClick={() => onPlacePreviousBet(2)}
+                  >
+                    ${currentBet * 2}
+                  </Button>
+                )}
+                {chips >= currentBet * 3 && (
+                  <Button variant="green" onClick={() => onPlacePreviousBet(3)}>
+                    ${currentBet * 3}
+                  </Button>
+                )}
+              </>
             )}
-            {previousBet > 0 && (
+            {previousBet > 0 && !currentBet && (
               <>
                 {chips >= previousBet && (
                   <Button
@@ -141,17 +156,14 @@ const Controls: React.FC<ControlsProps> = ({
                 )}
                 {chips >= previousBet * 2 && (
                   <Button
-                    variant="yellow"
+                    variant="purple"
                     onClick={() => onPlacePreviousBet(2)}
                   >
                     ${previousBet * 2}
                   </Button>
                 )}
                 {chips >= previousBet * 3 && (
-                  <Button
-                    variant="yellow"
-                    onClick={() => onPlacePreviousBet(3)}
-                  >
+                  <Button variant="green" onClick={() => onPlacePreviousBet(3)}>
                     ${previousBet * 3}
                   </Button>
                 )}
