@@ -54,4 +54,5 @@ export interface GameState {
   };
   nextGameStatus?: GameStatus;
   nextMessage?: string;
+  showConfetti: boolean;
 }

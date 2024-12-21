@@ -27,7 +27,8 @@ const initialState: GameState = {
     totalWins: 0,
     totalLosses: 0,
     totalPushes: 0
-  }
+  },
+  showConfetti: false
 };
 
 const gameSlice = createSlice({
@@ -68,11 +69,12 @@ const gameSlice = createSlice({
       });
       if (state.nextGameStatus) {
         state.gameStatus = state.nextGameStatus;
-        state.message = state.nextMessage || GameMessage.PlaceBet;
+        state.message = state.nextMessage ?? GameMessage.PlaceBet;
         state.nextGameStatus = undefined;
         state.nextMessage = undefined;
         state.playerHand = { cards: [], score: 0, isBusted: false };
         state.dealerHand = { cards: [], score: 0, isBusted: false };
+        state.showConfetti = false;
       }
     }
   },
@@ -89,9 +91,9 @@ const gameSlice = createSlice({
       .addCase(startNewHand.fulfilled, (state, action) => {
         console.log('Dealing fulfilled:', action.payload);
         if (!action.payload) return;
-        
+
         const { currentDeck, playerCards, dealerCards, previousBet } = action.payload;
-        
+
         state.deck = currentDeck;
         state.playerHand = {
           cards: playerCards,
@@ -111,7 +113,7 @@ const gameSlice = createSlice({
       .addCase(handleHit.fulfilled, (state, action) => {
         if (!action.payload) return;
         const { newDeck, newCards, score, isBusted } = action.payload;
-        
+
         state.deck = newDeck;
         state.playerHand = {
           cards: newCards,
@@ -145,11 +147,12 @@ const gameSlice = createSlice({
       .addCase(handleDealerTurn.fulfilled, (state, action) => {
         if (!action.payload) return;
         const { dealerResults, currentDeck, winnings, finalScore } = action.payload;
-        
+
         const betAmount = state.currentBet;
-        
+
         if (winnings.amount > betAmount) {
           state.stats.totalWins++;
+          state.showConfetti = true;
         } else if (winnings.amount === betAmount) {
           state.stats.totalPushes++;
         } else {
@@ -178,7 +181,7 @@ const gameSlice = createSlice({
       .addCase(handleDoubleDown.fulfilled, (state, action) => {
         if (!action.payload) return;
         const { newDeck, newCards, score, isBusted, newBet, additionalBet } = action.payload;
-        
+
         state.deck = newDeck;
         state.chips -= additionalBet;
         state.currentBet = newBet;

@@ -29,7 +29,7 @@ import { AnyAction, ThunkDispatch } from "@reduxjs/toolkit";
 import { RootState } from "./store/store";
 import StatsDisplay from "./components/StatsDisplay";
 import { useEffect, useState } from "react";
-import Confetti from 'react-confetti';
+import Confetti from "react-confetti";
 
 function App() {
   const dispatch = useAppDispatch() as ThunkDispatch<
@@ -87,7 +87,10 @@ function App() {
 
   // Watch for wins and trigger confetti
   useEffect(() => {
-    if (gameState.gameStatus === 'finished' && gameState.message.includes('You win')) {
+    if (
+      gameState.gameStatus === "finished" &&
+      gameState.message.includes("You win")
+    ) {
       setShowConfetti(true);
       const timer = setTimeout(() => setShowConfetti(false), 5000);
       return () => clearTimeout(timer);
@@ -96,7 +99,7 @@ function App() {
 
   return (
     <ErrorBoundary>
-      {showConfetti && (
+      {gameState.showConfetti && (
         <Confetti
           width={window.innerWidth}
           height={window.innerHeight}
