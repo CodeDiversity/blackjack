@@ -1,12 +1,10 @@
-import { Middleware } from '@reduxjs/toolkit';
-import { RootState } from './store';
+import { AppMiddleware } from '../types/middleware';
 
-export const persistMiddleware: Middleware<{}, RootState> = store => next => action => {
+export const persistMiddleware: AppMiddleware = store => next => action => {
   const result = next(action);
   const state = store.getState();
 
   if (typeof window !== 'undefined') {
-    // Save to localStorage after state changes
     localStorage.setItem('blackjack-state', JSON.stringify(state.game));
   }
 

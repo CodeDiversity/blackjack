@@ -1,4 +1,66 @@
 import React from "react";
+import styled from "styled-components";
+
+const Container = styled.div`
+  display: grid;
+  gap: 0.5rem;
+  min-width: 280px;
+  height: 80px;
+  @media (min-width: 768px) {
+    height: 100px;
+  }
+`;
+
+const ButtonRow = styled.div`
+  display: flex;
+  gap: 0.25rem;
+  @media (min-width: 768px) {
+    gap: 0.5rem;
+  }
+`;
+
+const Button = styled.button<{
+  variant: "red" | "green" | "purple" | "yellow";
+}>`
+  width: 70px;
+  height: 40px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+
+  @media (min-width: 768px) {
+    width: 90px;
+    height: 45px;
+    font-size: 1rem;
+  }
+
+  ${({ variant }) => {
+    switch (variant) {
+      case "red":
+        return `
+          background-color: #dc2626;
+          &:hover { background-color: #b91c1c; }
+        `;
+      case "green":
+        return `
+          background-color: #16a34a;
+          &:hover { background-color: #15803d; }
+        `;
+      case "purple":
+        return `
+          background-color: #9333ea;
+          &:hover { background-color: #7e22ce; }
+        `;
+      case "yellow":
+        return `
+          background-color: #ca8a04;
+          &:hover { background-color: #a16207; }
+        `;
+    }
+  }}
+`;
 
 interface ControlsProps {
   onHit: () => void;
@@ -19,7 +81,6 @@ const Controls: React.FC<ControlsProps> = ({
   onHit,
   onStand,
   onDoubleDown,
-  onNewGame,
   onReset,
   onPlacePreviousBet,
   onDeal,
@@ -29,39 +90,24 @@ const Controls: React.FC<ControlsProps> = ({
   canDoubleDown,
   canDealCards,
 }) => {
-  console.log("Controls render:", { gameStatus, chips });
-
   const isBetting = gameStatus === "betting";
   const canAct = gameStatus === "playing";
 
   return (
-    <div className="grid gap-2 min-w-[280px] h-[80px] md:h-[100px]">
-      <div className="flex gap-1 md:gap-2">
+    <Container>
+      <ButtonRow>
         {canAct && (
           <>
-            <button
-              onClick={onStand}
-              className="w-[70px] md:w-[90px] h-[40px] md:h-[45px] text-sm md:text-base bg-red-600 hover:bg-red-700 text-white rounded-lg
-                transition-colors font-semibold"
-            >
+            <Button variant="red" onClick={onStand}>
               Stand
-            </button>
-            <button
-              onClick={onHit}
-              className="w-[70px] md:w-[90px] h-[40px] md:h-[45px] text-sm md:text-base bg-green-600 hover:bg-green-700 text-white rounded-lg
-                transition-colors font-semibold"
-            >
+            </Button>
+            <Button variant="green" onClick={onHit}>
               Hit
-            </button>
-
+            </Button>
             {canDoubleDown && (
-              <button
-                onClick={onDoubleDown}
-                className="w-[70px] md:w-[90px] h-[40px] md:h-[45px] text-sm md:text-base bg-purple-600 hover:bg-purple-700 text-white rounded-lg
-                  transition-colors font-semibold"
-              >
+              <Button variant="purple" onClick={onDoubleDown}>
                 Double
-              </button>
+              </Button>
             )}
           </>
         )}
@@ -69,39 +115,27 @@ const Controls: React.FC<ControlsProps> = ({
         {isBetting && (
           <>
             {canDealCards && (
-              <button
-                onClick={onDeal}
-                className="w-[70px] md:w-[90px] h-[40px] md:h-[45px] text-sm md:text-base bg-yellow-600 text-white rounded-lg hover:bg-yellow-700
-                  transition-colors font-semibold"
-              >
+              <Button variant="yellow" onClick={onDeal}>
                 Deal
-              </button>
+              </Button>
             )}
             {previousBet > 0 && chips >= previousBet && (
-              <button
-                onClick={onPlacePreviousBet}
-                className="w-[70px] md:w-[90px] h-[40px] md:h-[45px] text-sm md:text-base bg-yellow-600 text-white rounded-lg hover:bg-yellow-700
-                  transition-colors font-semibold"
-              >
+              <Button variant="yellow" onClick={onPlacePreviousBet}>
                 Repeat Bet
-              </button>
+              </Button>
             )}
           </>
         )}
-      </div>
+      </ButtonRow>
 
-      <div className="flex gap-2">
+      <ButtonRow>
         {gameStatus === "finished" && chips <= 0 && (
-          <button
-            onClick={onReset}
-            className="w-[70px] md:w-[90px] h-[40px] md:h-[45px] text-sm md:text-base bg-red-600 text-white rounded-lg hover:bg-red-700
-              transition-colors font-semibold"
-          >
+          <Button variant="red" onClick={onReset}>
             Reset Game
-          </button>
+          </Button>
         )}
-      </div>
-    </div>
+      </ButtonRow>
+    </Container>
   );
 };
 

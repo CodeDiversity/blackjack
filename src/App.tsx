@@ -1,3 +1,6 @@
+import { useEffect } from "react";
+import styled from "styled-components";
+import Confetti from "react-confetti";
 import { useAppDispatch, useAppSelector } from "./store/hooks";
 import {
   selectGameState,
@@ -25,24 +28,178 @@ import Controls from "./components/Controls";
 import Chips from "./components/Chips";
 import BettingHistory from "./components/BettingHistory";
 import ErrorBoundary from "./components/ErrorBoundary";
-import { AnyAction, ThunkDispatch } from "@reduxjs/toolkit";
+import { ThunkDispatch, UnknownAction } from "@reduxjs/toolkit";
 import { RootState } from "./store/store";
 import StatsDisplay from "./components/StatsDisplay";
-import { useEffect, useState } from "react";
-import Confetti from "react-confetti";
+
+const AppContainer = styled.div`
+  min-height: 100vh;
+  background-image: linear-gradient(to bottom right, #166534, #14532d);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+`;
+
+const GameContainer = styled.div`
+  background-color: #15803d;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  width: 100%;
+  max-width: 1000px;
+  min-height: 500px;
+  height: 700px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  @media (min-width: 768px) {
+    padding: 2rem;
+    flex-direction: row;
+    gap: 2rem;
+  }
+`;
+
+const Sidebar = styled.div`
+  display: none;
+  width: 250px;
+  flex-shrink: 0;
+  border-right: 1px solid #16a34a;
+
+  @media (min-width: 768px) {
+    display: block;
+  }
+`;
+
+const MainContent = styled.div`
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+`;
+
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+
+  @media (min-width: 768px) {
+    margin-bottom: 2rem;
+  }
+`;
+
+const Title = styled.h1`
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+
+  @media (min-width: 768px) {
+    font-size: 2.25rem;
+  }
+`;
+
+const CardCount = styled.div`
+  font-size: 0.75rem;
+  color: #e2e8f0;
+
+  @media (min-width: 768px) {
+    font-size: 0.875rem;
+  }
+`;
+
+const GameArea = styled.div`
+  flex-grow: 1;
+  background-color: #166534;
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  position: relative;
+
+  @media (min-width: 768px) {
+    padding: 1.5rem;
+  }
+`;
+
+const ControlsArea = styled.div`
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+
+  @media (min-width: 768px) {
+    margin-top: 2rem;
+    gap: 1.5rem;
+  }
+`;
+
+const StatsContainer = styled.div`
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #166534;
+  border-radius: 0.5rem;
+`;
+
+const GameContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 400px;
+
+  @media (min-width: 768px) {
+    min-height: 500px;
+  }
+`;
+
+const HandContainer = styled.div<{ isDealer?: boolean }>`
+  width: 100%;
+  margin-top: ${({ isDealer }) => (isDealer ? "0.5rem" : "0")};
+  margin-bottom: ${({ isDealer }) => (isDealer ? "0" : "2rem")};
+
+  @media (min-width: 768px) {
+    margin-top: ${({ isDealer }) => (isDealer ? "1rem" : "0")};
+    margin-bottom: ${({ isDealer }) => (isDealer ? "0" : "3rem")};
+  }
+`;
+
+const Message = styled.div`
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: white;
+  text-align: center;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  background-color: #15803d;
+  width: 100%;
+  z-index: 10;
+
+  @media (min-width: 768px) {
+    font-size: 1.25rem;
+    padding: 1rem;
+  }
+`;
+
+const ControlsWrapper = styled.div`
+  display: flex;
+  gap: 0.5rem;
+
+  @media (min-width: 768px) {
+    gap: 1rem;
+  }
+`;
 
 function App() {
   const dispatch = useAppDispatch() as ThunkDispatch<
     RootState,
     unknown,
-    AnyAction
+    UnknownAction
   >;
   const gameState = useAppSelector(selectGameState);
   const canDoubleDown = useAppSelector(selectCanDoubleDown);
   const displayedCardCount = useAppSelector(selectDisplayedCardCount);
   const canBet = useAppSelector(selectCanBet);
   const canDealCards = useAppSelector(selectCanDealCards);
-  const [showConfetti, setShowConfetti] = useState(false);
 
   // Action handlers
   const handleStartNewHand = () => dispatch(startNewHand());
@@ -86,16 +243,6 @@ function App() {
   }, [gameState.nextGameStatus, dispatch, gameState.nextMessage]);
 
   // Watch for wins and trigger confetti
-  useEffect(() => {
-    if (
-      gameState.gameStatus === "finished" &&
-      gameState.message.includes("You win")
-    ) {
-      setShowConfetti(true);
-      const timer = setTimeout(() => setShowConfetti(false), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [gameState.gameStatus, gameState.message]);
 
   return (
     <ErrorBoundary>
@@ -108,51 +255,45 @@ function App() {
           gravity={0.3}
         />
       )}
-      <div className="min-h-screen bg-gradient-to-br from-green-800 to-green-900 flex items-center justify-center p-2">
-        <div className="bg-green-700 p-4 md:p-8 rounded-xl shadow-2xl w-full max-w-[1000px] min-h-[500px] md:h-[700px] flex flex-col md:flex-row gap-4 md:gap-8">
-          <div className="hidden md:block w-[250px] shrink-0 border-r border-green-600">
+      <AppContainer>
+        <GameContainer>
+          <Sidebar>
             <BettingHistory bets={gameState.bettingHistory} />
-            <div className="mt-4 p-4 bg-green-800 rounded-lg">
+            <StatsContainer>
               <StatsDisplay
                 wins={gameState.stats.totalWins}
                 losses={gameState.stats.totalLosses}
                 pushes={gameState.stats.totalPushes}
               />
-            </div>
-          </div>
+            </StatsContainer>
+          </Sidebar>
 
-          <div className="flex-grow flex flex-col">
-            <div className="flex justify-between items-center mb-4 md:mb-8">
-              <h1 className="text-2xl md:text-4xl font-bold text-white">
-                Blackjack
-              </h1>
-              <div className="text-xs md:text-sm text-gray-200">
-                Cards Remaining: {displayedCardCount}
-              </div>
-            </div>
+          <MainContent>
+            <Header>
+              <Title>Blackjack</Title>
+              <CardCount>Cards Remaining: {displayedCardCount}</CardCount>
+            </Header>
 
-            <div className="flex-grow bg-green-800 rounded-xl p-3 md:p-6 relative">
-              <div className="flex flex-col items-center justify-between min-h-[400px] md:min-h-[500px]">
-                <div className="w-full mt-2 md:mt-4">
+            <GameArea>
+              <GameContent>
+                <HandContainer isDealer>
                   <Hand
                     hand={gameState.dealerHand}
                     isDealer
                     hideHoleCard={gameState.gameStatus === "playing"}
                     revealIndex={gameState.revealIndex}
                   />
-                </div>
+                </HandContainer>
 
-                <div className="text-lg md:text-xl font-semibold text-white text-center p-2 md:p-4 rounded-lg bg-green-700 w-full z-10">
-                  {gameState.message}
-                </div>
+                <Message>{gameState.message}</Message>
 
-                <div className="w-full mb-8 md:mb-12">
+                <HandContainer>
                   <Hand hand={gameState.playerHand} />
-                </div>
-              </div>
-            </div>
+                </HandContainer>
+              </GameContent>
+            </GameArea>
 
-            <div className="mt-6 md:mt-8 flex flex-col items-center gap-4 md:gap-6">
+            <ControlsArea>
               <Chips
                 chips={gameState.chips}
                 currentBet={gameState.currentBet}
@@ -160,7 +301,7 @@ function App() {
                 canBet={canBet}
               />
 
-              <div className="flex gap-2 md:gap-4">
+              <ControlsWrapper>
                 <Controls
                   onHit={handlePlayerHit}
                   onStand={handlePlayerStand}
@@ -175,11 +316,11 @@ function App() {
                   canDoubleDown={canDoubleDown}
                   canDealCards={canDealCards}
                 />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+              </ControlsWrapper>
+            </ControlsArea>
+          </MainContent>
+        </GameContainer>
+      </AppContainer>
     </ErrorBoundary>
   );
 }

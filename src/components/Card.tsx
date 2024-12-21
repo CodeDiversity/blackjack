@@ -1,61 +1,125 @@
 import React from "react";
+import styled from "styled-components";
 import { Card as CardType } from "../types/game";
-import { Heart, Diamond, Club, Spade } from "lucide-react";
+
+const CardContainer = styled.div<{ isHidden: boolean }>`
+  position: relative;
+  width: 70px;
+  height: 100px;
+  perspective: 1000px;
+  transform-style: preserve-3d;
+  transition: transform 0.6s;
+
+  @media (min-width: 768px) {
+    width: 100px;
+    height: 140px;
+  }
+`;
+
+const CardFace = styled.div<{ isHidden: boolean }>`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  transition: transform 0.6s;
+  transform: ${({ isHidden }) =>
+    isHidden ? "rotateY(180deg)" : "rotateY(0deg)"};
+`;
+
+const FrontFace = styled(CardFace)`
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem;
+`;
+
+const BackFace = styled(CardFace)`
+  background-color: #1e40af;
+  background-image: linear-gradient(
+    135deg,
+    #1e40af 25%,
+    #1e3a8a 25%,
+    #1e3a8a 50%,
+    #1e40af 50%,
+    #1e40af 75%,
+    #1e3a8a 75%,
+    #1e3a8a 100%
+  );
+  background-size: 20px 20px;
+  transform: rotateY(180deg);
+`;
+
+const Corner = styled.div<{ isRed?: boolean; isBottom?: boolean }>`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-weight: bold;
+  color: ${({ isRed }) => (isRed ? "#dc2626" : "#1e3a8a")};
+  position: absolute;
+  ${({ isBottom }) =>
+    isBottom
+      ? "bottom: 0.5rem; right: 0.5rem; transform: rotate(180deg);"
+      : "top: 0.5rem; left: 0.5rem;"}
+`;
+
+const Value = styled.span`
+  font-size: 1.125rem;
+  line-height: 1;
+
+  @media (min-width: 768px) {
+    font-size: 1.5rem;
+  }
+`;
+
+const Suit = styled.span`
+  font-size: 0.875rem;
+  line-height: 1;
+
+  @media (min-width: 768px) {
+    font-size: 1.125rem;
+  }
+`;
 
 interface CardProps {
-  card?: CardType;
+  card: CardType;
   isHidden?: boolean;
 }
 
-const Card: React.FC<CardProps> = ({ card, isHidden }) => {
-  if (isHidden) {
-    return (
-      <div
-        className="w-24 h-36 bg-indigo-700 rounded-lg shadow-md border-2 border-indigo-800
-        transform transition-transform hover:scale-105"
-      >
-        <div className="w-full h-full flex items-center justify-center">
-          <div
-            className="w-16 h-24 rounded-lg bg-indigo-600"
-            data-testid="hidden-card"
-          ></div>
-        </div>
-      </div>
-    );
+const getSuitSymbol = (suit: string) => {
+  switch (suit) {
+    case "hearts":
+      return "♥";
+    case "diamonds":
+      return "♦";
+    case "clubs":
+      return "♣";
+    case "spades":
+      return "♠";
+    default:
+      return "";
   }
+};
 
-  if (!card) return null;
-
-  const SuitIcon = {
-    hearts: Heart,
-    diamonds: Diamond,
-    clubs: Club,
-    spades: Spade,
-  }[card.suit];
-
-  const suitColor =
-    card.suit === "hearts" || card.suit === "diamonds"
-      ? "text-red-600"
-      : "text-gray-900";
+const Card: React.FC<CardProps> = ({ card, isHidden = false }) => {
+  const isRed = card.suit === "hearts" || card.suit === "diamonds";
+  const suitSymbol = getSuitSymbol(card.suit);
 
   return (
-    <div
-      className="w-24 h-36 bg-white rounded-lg shadow-md border-2 border-gray-200
-      transform transition-transform hover:scale-105"
-    >
-      <div className="p-2 flex flex-col h-full">
-        <div className={`text-lg font-bold ${suitColor}`}>{card.face}</div>
-        <div className="flex-grow flex items-center justify-center">
-          <SuitIcon
-            data-testid="suit-icon"
-            className={`w-8 h-8 ${suitColor}`}
-          />
-        </div>
-        <div className={`text-lg font-bold rotate-180 ${suitColor}`}>
-          {card.face}
-        </div>
-      </div>
-    </div>
+    <CardContainer isHidden={isHidden}>
+      <FrontFace isHidden={isHidden}>
+        <Corner isRed={isRed}>
+          <Value>{card.face}</Value>
+          <Suit>{suitSymbol}</Suit>
+        </Corner>
+        <Corner isRed={isRed} isBottom>
+          <Value>{card.face}</Value>
+          <Suit>{suitSymbol}</Suit>
+        </Corner>
+      </FrontFace>
+      <BackFace isHidden={isHidden} />
+    </CardContainer>
   );
 };
 

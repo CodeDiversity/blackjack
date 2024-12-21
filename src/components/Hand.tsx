@@ -1,8 +1,52 @@
 import React from "react";
-import Card from "./Card";
-import { Hand as HandType } from "../types/game";
+import styled from "styled-components";
 import { motion } from "framer-motion";
+import { Hand as HandType } from "../types/game";
+import Card from "./Card";
 import { calculateHandScore } from "../utils/deckUtils";
+
+const HandContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const Score = styled.div`
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #f1f5f9;
+`;
+
+const CardsContainer = styled.div`
+  position: relative;
+  height: 24px;
+  width: 100%;
+  max-width: 500px;
+
+  @media (min-width: 768px) {
+    height: 36px;
+  }
+`;
+
+const CardsWrapper = styled.div`
+  position: relative;
+  width: 200px;
+  margin: 0 auto;
+
+  @media (min-width: 768px) {
+    width: 360px;
+  }
+`;
+
+const CardWrapper = styled(motion.div)`
+  position: absolute;
+  scale: 0.75;
+
+  @media (min-width: 768px) {
+    scale: 1;
+  }
+`;
 
 interface HandProps {
   hand: HandType;
@@ -18,7 +62,7 @@ const Hand: React.FC<HandProps> = ({
   revealIndex,
 }) => {
   if (!hand || !hand.cards) {
-    return null; // or a loading indicator
+    return null;
   }
 
   const getDisplayScore = () => {
@@ -34,16 +78,15 @@ const Hand: React.FC<HandProps> = ({
   const displayScore = getDisplayScore();
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="text-lg font-semibold text-gray-100">
+    <HandContainer>
+      <Score>
         {isDealer ? "Dealer" : "Player"}: {displayScore}
-      </div>
-      <div className="relative h-24 md:h-36 w-full max-w-[500px]">
-        <div className="relative w-[200px] md:w-[360px] mx-auto">
+      </Score>
+      <CardsContainer>
+        <CardsWrapper>
           {hand.cards.map((card, index) => (
-            <motion.div
+            <CardWrapper
               key={index}
-              className="absolute scale-75 md:scale-100"
               style={{
                 left: `${index * (window.innerWidth < 768 ? 40 : 90)}px`,
               }}
@@ -61,11 +104,11 @@ const Hand: React.FC<HandProps> = ({
               }}
             >
               <Card card={card} isHidden={hideHoleCard && index === 1} />
-            </motion.div>
+            </CardWrapper>
           ))}
-        </div>
-      </div>
-    </div>
+        </CardsWrapper>
+      </CardsContainer>
+    </HandContainer>
   );
 };
 

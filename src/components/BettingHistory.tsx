@@ -1,47 +1,68 @@
-import React from 'react';
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import React from "react";
+import styled from "styled-components";
+import { BetResult } from "../types/game";
 
-interface BetResult {
-  amount: number;
-  won: boolean;
-  timestamp: Date | number;
-}
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const Title = styled.h2`
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+`;
+
+const HistoryList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const BetItem = styled.div<{ won: boolean }>`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background-color: ${({ won }) => (won ? "#15803d" : "#991b1b")};
+  border-radius: 0.375rem;
+  color: white;
+  font-size: 0.875rem;
+`;
+
+const Amount = styled.span`
+  font-weight: 600;
+`;
+
+const Time = styled.span`
+  color: #e2e8f0;
+  font-size: 0.75rem;
+`;
 
 interface BettingHistoryProps {
-  bets?: BetResult[];
+  bets: BetResult[];
 }
 
 const BettingHistory: React.FC<BettingHistoryProps> = ({ bets }) => {
-  const formatTimestamp = (timestamp: number | Date) => {
-    const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
-    return date.toLocaleTimeString();
-  };
-
   return (
-    <div className="h-full">
-      <h3 className="text-lg font-semibold mb-2 text-white">Betting History</h3>
-      <div className="space-y-2 overflow-y-auto max-h-[550px]">
-        {(bets || []).map((bet, index) => (
-          <div
-            key={index}
-            className="flex justify-between items-center text-sm bg-gray-800 p-3 rounded-lg shadow-md hover:bg-gray-700 transition-colors"
-          >
-            <span className="text-gray-300">{formatTimestamp(bet.timestamp)}</span>
-            <span className={bet.won ? 'text-green-500' : 'text-red-500'}>
-              {bet.won ? '' : '-'}${bet.amount}
-            </span>
-            <span>
-              {bet.won ? (
-                <TrendingUp className="text-green-500" />
-              ) : (
-                <TrendingDown className="text-red-500" />
-              )}
-            </span>
-          </div>
+    <Container>
+      <Title>Betting History</Title>
+      <HistoryList>
+        {bets.map((bet, index) => (
+          <BetItem key={index} won={bet.won}>
+            <Amount>${bet.amount}</Amount>
+            <Time>
+              {bet.timestamp.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </Time>
+          </BetItem>
         ))}
-      </div>
-    </div>
+      </HistoryList>
+    </Container>
   );
 };
 
-export default BettingHistory; 
+export default BettingHistory;

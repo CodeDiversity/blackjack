@@ -1,5 +1,80 @@
 import React from "react";
 import { Coins } from "lucide-react";
+import styled from "styled-components";
+
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+`;
+
+const ChipsTotal = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #fde047;
+`;
+
+const BetDisplay = styled.div`
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const CurrentBet = styled.div`
+  color: white;
+  font-weight: 600;
+`;
+
+const ChipsContainer = styled.div`
+  display: flex;
+  gap: 0.5rem;
+`;
+
+const ChipButton = styled.button<{ isEnabled: boolean }>`
+  position: relative;
+  opacity: ${(props) => (props.isEnabled ? 1 : 0.5)};
+  cursor: ${(props) => (props.isEnabled ? "pointer" : "not-allowed")};
+  transition: all 0.2s;
+
+  &:hover {
+    transform: ${(props) => (props.isEnabled ? "translateY(-0.5rem)" : "none")};
+  }
+`;
+
+const Chip = styled.div<{ color: string }>`
+  width: 4rem;
+  height: 4rem;
+  border-radius: 9999px;
+  border: 4px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  transition: transform 0.2s;
+  ${(props) => getChipStyles(parseInt(props.color))}
+`;
+
+const getChipStyles = (value: number) => {
+  switch (value) {
+    case 5:
+      return "background-color: #dc2626; border-color: #f87171;";
+    case 25:
+      return "background-color: #16a34a; border-color: #4ade80;";
+    case 100:
+      return "background-color: #2563eb; border-color: #60a5fa;";
+    case 500:
+      return "background-color: #9333ea; border-color: #c084fc;";
+    default:
+      return "background-color: #4b5563; border-color: #9ca3af;";
+  }
+};
 
 interface ChipsProps {
   chips: number;
@@ -17,60 +92,31 @@ const Chips: React.FC<ChipsProps> = ({
   canBet,
 }) => {
   return (
-    <div className="flex flex-col items-center gap-4">
-      <div className="flex items-center gap-2 text-xl font-bold text-yellow-300">
+    <Container>
+      <ChipsTotal>
         <Coins className="w-6 h-6" />
         <span>Chips: ${chips}</span>
-      </div>
+      </ChipsTotal>
 
-      <div className="h-8 flex items-center justify-center">
-        {currentBet > 0 && (
-          <div className="text-white font-semibold">
-            Current Bet: ${currentBet}
-          </div>
-        )}
-      </div>
+      <BetDisplay>
+        {currentBet > 0 && <CurrentBet>Current Bet: ${currentBet}</CurrentBet>}
+      </BetDisplay>
 
-      <div className="flex gap-2">
+      <ChipsContainer>
         {CHIP_VALUES.map((value) => (
-          <button
+          <ChipButton
             key={value}
             onClick={() => onPlaceBet(value)}
             disabled={!canBet || chips < value}
             aria-label={`Place bet of $${value}`}
-            className={`relative group ${
-              canBet && chips >= value
-                ? "hover:-translate-y-2"
-                : "opacity-50 cursor-not-allowed"
-            } transition-all duration-200`}
+            isEnabled={canBet && chips >= value}
           >
-            <div
-              className={`w-16 h-16 rounded-full border-4 flex items-center justify-center
-                text-white font-bold shadow-lg transform transition-transform
-                ${getChipColor(value)}`}
-            >
-              ${value}
-            </div>
-          </button>
+            <Chip color={String(value)}>${value}</Chip>
+          </ChipButton>
         ))}
-      </div>
-    </div>
+      </ChipsContainer>
+    </Container>
   );
 };
-
-function getChipColor(value: number): string {
-  switch (value) {
-    case 5:
-      return "bg-red-600 border-red-400";
-    case 25:
-      return "bg-green-600 border-green-400";
-    case 100:
-      return "bg-blue-600 border-blue-400";
-    case 500:
-      return "bg-purple-600 border-purple-400";
-    default:
-      return "bg-gray-600 border-gray-400";
-  }
-}
 
 export default Chips;
