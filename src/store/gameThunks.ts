@@ -107,13 +107,14 @@ export const placePreviousBet = createAsyncThunk<StartHandResult | null, void, {
   async (_, { getState, dispatch }) => {
     const state = getState();
     if (
+      state.game.gameStatus !== GameStatus.Betting ||
       state.game.previousBet === 0 ||
       state.game.chips < state.game.previousBet ||
       state.game.currentBet > 0
     ) return null;
 
-    dispatch(placeBet(state.game.previousBet));
-    const result = await dispatch(startNewHand()).unwrap();
+    await dispatch(placeBet(state.game.previousBet));
+    const result = await (dispatch as AppDispatch)(startNewHand()).unwrap();
     return result;
   }
 );
