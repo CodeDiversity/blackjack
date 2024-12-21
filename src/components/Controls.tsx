@@ -136,7 +136,7 @@ const Controls: React.FC<ControlsProps> = ({
                     variant="yellow"
                     onClick={() => onPlacePreviousBet(1)}
                   >
-                    {previousBet}
+                    ${previousBet}
                   </Button>
                 )}
                 {chips >= previousBet * 2 && (
@@ -144,7 +144,7 @@ const Controls: React.FC<ControlsProps> = ({
                     variant="yellow"
                     onClick={() => onPlacePreviousBet(2)}
                   >
-                    {previousBet * 2}
+                    ${previousBet * 2}
                   </Button>
                 )}
                 {chips >= previousBet * 3 && (
@@ -152,7 +152,7 @@ const Controls: React.FC<ControlsProps> = ({
                     variant="yellow"
                     onClick={() => onPlacePreviousBet(3)}
                   >
-                    {previousBet * 3}
+                    ${previousBet * 3}
                   </Button>
                 )}
               </>
