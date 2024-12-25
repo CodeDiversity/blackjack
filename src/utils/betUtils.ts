@@ -4,8 +4,16 @@ export function calculateWinnings(
   dealerScore: number,
   playerScore: number,
   currentBet: number,
-  dealerBusted: boolean
+  dealerBusted: boolean,
+  isBlackjack = false
 ): { message: string; amount: number } {
+  if (isBlackjack) {
+    return {
+      message: 'Blackjack! You win!',
+      amount: Math.floor(currentBet * 2.5)
+    };
+  }
+
   if (dealerBusted || playerScore > dealerScore) {
     return {
       message: 'You win!',

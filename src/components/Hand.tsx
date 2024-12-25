@@ -5,6 +5,10 @@ import { Hand as HandType } from "../types/game";
 import Card from "./Card";
 import { calculateHandScore } from "../utils/deckUtils";
 import { playCardFlip } from "../utils/soundUtils";
+import { useDispatch, useSelector } from "react-redux";
+import { handleBustAnimation } from "../store/gameThunks";
+import { RootState } from "../types/store";
+import { handleStand } from "../store/gameThunks";
 
 const HandContainer = styled.div`
   display: flex;
@@ -64,6 +68,8 @@ const Hand: React.FC<HandProps> = ({
   revealIndex,
   onCardAnimationComplete,
 }) => {
+  const dispatch = useDispatch();
+  const currentBet = useSelector((state: RootState) => state.game.currentBet);
   const [animatingCardIndex, setAnimatingCardIndex] = useState(-1);
 
   if (!hand || !hand.cards) {
@@ -115,7 +121,11 @@ const Hand: React.FC<HandProps> = ({
               }}
               onAnimationComplete={() => {
                 if (index === hand.cards.length - 1) {
-                  onCardAnimationComplete?.();
+                  if (hand.isBusted) {
+                    dispatch(handleBustAnimation(currentBet));
+                  } else if (hand.score === 21) {
+                    dispatch(handleStand());
+                  }
                 }
               }}
             >

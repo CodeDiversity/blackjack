@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { GameState, GameStatus, GameMessage, Hand } from '../types/game';
 import { INITIAL_CHIPS } from '../utils/betUtils';
-import { startNewHand, handleDealerTurn, handleHit, handleDoubleDown } from './gameThunks';
+import { startNewHand, handleDealerTurn, handleHit, handleDoubleDown, handleBustAnimation } from './gameThunks';
 import { calculateHandScore } from '../utils/deckUtils';
 
 const initialState: GameState = {
@@ -116,33 +116,38 @@ const gameSlice = createSlice({
       })
       .addCase(handleHit.fulfilled, (state, action) => {
         if (!action.payload) return;
-        const { newDeck, newCards, score, isBusted, betAmount, waitForAnimation } = action.payload;
+        const { newDeck, newCards, score, isBusted, betAmount, shouldStartDealerTurn } = action.payload;
 
         state.deck = newDeck;
         state.playerHand = {
           cards: newCards,
           score,
-          isBusted,
-          waitForAnimation
+          isBusted
         };
 
         if (isBusted) {
-          state.gameStatus = GameStatus.Finished;
           state.message = GameMessage.PlayerBust;
-          state.bettingHistory = [
-            {
-              amount: betAmount,
-              won: false,
-              timestamp: new Date()
-            },
-            ...state.bettingHistory
-          ].slice(0, 5);
-          state.currentBet = 0;
-          state.nextGameStatus = GameStatus.Betting;
-          state.nextMessage = GameMessage.PlaceBet;
-          state.stats.totalLosses++;
-          return;
+        } else if (shouldStartDealerTurn) {
+          state.message = GameMessage.DealerTurn;
         }
+      })
+      .addCase(handleBustAnimation.fulfilled, (state, action) => {
+        if (!action.payload) return;
+        const { betAmount } = action.payload;
+
+        state.gameStatus = GameStatus.Finished;
+        state.bettingHistory = [
+          {
+            amount: betAmount,
+            won: false,
+            timestamp: new Date()
+          },
+          ...state.bettingHistory
+        ].slice(0, 5);
+        state.currentBet = 0;
+        state.nextGameStatus = GameStatus.Betting;
+        state.nextMessage = GameMessage.PlaceBet;
+        state.stats.totalLosses++;
       })
       .addCase(handleDealerTurn.pending, (state) => {
         state.gameStatus = GameStatus.DealerTurn;

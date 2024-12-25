@@ -1,10 +1,9 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { createDeck, calculateHandScore } from '../utils/deckUtils';
 import { calculateWinnings } from '../utils/betUtils';
-import { Card } from '../types/game';
+import { Card, GameStatus, GameMessage } from '../types/game';
 import { placeBet, setGameStatus, updateDealerHand, clearBet } from './gameSlice';
 import { AppDispatch, RootState } from '../types/store';
-import { GameStatus, GameMessage } from '../types/game';
 
 const MIN_CARDS_BEFORE_SHUFFLE = 10;
 
@@ -56,6 +55,10 @@ export const handleDealerTurn = createAsyncThunk(
     const dealerCards = [...state.game.dealerHand.cards];
     let dealerScore = calculateHandScore(dealerCards);
 
+    // Check if player has blackjack (21 with exactly 2 cards)
+    const isBlackjack = state.game.playerHand.score === 21 &&
+      state.game.playerHand.cards.length === 2;
+
     // Initialize results with current hand
     const results = [{
       cards: [...dealerCards],
@@ -63,7 +66,7 @@ export const handleDealerTurn = createAsyncThunk(
       isBusted: false
     }];
 
-    while (dealerScore <= 16) {
+    while (dealerScore < 17) {
       const newCard = currentDeck.pop()!;
       dealerCards.push(newCard);
       dealerScore = calculateHandScore(dealerCards);
@@ -89,7 +92,8 @@ export const handleDealerTurn = createAsyncThunk(
       dealerScore,
       state.game.playerHand.score,
       state.game.currentBet,
-      isBusted
+      isBusted,
+      isBlackjack
     );
 
     return {
@@ -116,10 +120,10 @@ export const placePreviousBet = createAsyncThunk<StartHandResult | null, number 
     ) return null;
 
     if (state.game.currentBet > 0) {
-      await dispatch(clearBet());
+      dispatch(clearBet());
     }
 
-    await dispatch(placeBet(betAmount));
+    dispatch(placeBet(betAmount));
     const result = await (dispatch as AppDispatch)(startNewHand()).unwrap();
     return result;
   }
@@ -127,7 +131,7 @@ export const placePreviousBet = createAsyncThunk<StartHandResult | null, number 
 
 export const handleHit = createAsyncThunk(
   'game/hit',
-  async (_, { getState, dispatch }) => {
+  async (_, { getState }) => {
     const state = getState() as RootState;
 
     // Check if player is already busted or not in playing state
@@ -148,13 +152,8 @@ export const handleHit = createAsyncThunk(
       score,
       isBusted,
       betAmount,
-      waitForAnimation: true
+      shouldStartDealerTurn: score === 21 && !isBusted
     };
-
-    // Only start dealer's turn if player hits 21 and hasn't busted
-    if (score === 21 && !isBusted) {
-      await (dispatch as AppDispatch)(handleStand()).unwrap();
-    }
 
     return result;
   }
@@ -194,5 +193,12 @@ export const handleStand = createAsyncThunk<void, void, { state: RootState }>(
   async (_, { dispatch }) => {
     dispatch(setGameStatus({ status: GameStatus.DealerTurn, message: GameMessage.DealerTurn }));
     await (dispatch as AppDispatch)(handleDealerTurn()).unwrap();
+  }
+);
+
+export const handleBustAnimation = createAsyncThunk(
+  'game/handleBustAnimation',
+  async (betAmount: number) => {
+    return { betAmount };
   }
 );
