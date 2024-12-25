@@ -14,6 +14,10 @@ const Container = styled.div`
 const ButtonRow = styled.div`
   display: flex;
   gap: 0.25rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+
   @media (min-width: 768px) {
     gap: 0.5rem;
   }
@@ -66,7 +70,6 @@ interface ControlsProps {
   onHit: () => void;
   onStand: () => void;
   onDoubleDown: () => void;
-  onNewGame: () => void;
   onReset: () => void;
   onPlacePreviousBet: (multiplier?: number) => void;
   onDeal: () => void;

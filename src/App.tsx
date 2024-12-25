@@ -50,22 +50,24 @@ AppContainer.displayName = "AppContainer";
 // Container for the game area with green background
 const BlackjackTable = styled.div`
   background-color: #15803d;
-  padding: 1.5rem;
+  padding: 1rem;
   border-radius: 0.75rem;
   box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
   width: 100%;
   max-width: 1200px;
-  height: 95vh;
+  height: 100vh;
   max-height: 1200px;
   display: flex;
   flex-direction: column;
   gap: 1rem;
   overflow: hidden;
+  position: relative;
 
   @media (min-width: 768px) {
     padding: 2.5rem;
     flex-direction: row;
     gap: 2rem;
+    height: 95vh;
   }
 `;
 BlackjackTable.displayName = "BlackjackTable";
@@ -138,27 +140,33 @@ const PlayingField = styled.div`
   display: flex;
   flex-direction: column;
   overflow: visible;
-  min-height: 550px;
+  min-height: 400px;
+  max-height: 60vh;
 
   @media (min-width: 768px) {
     padding: 2rem;
-    min-height: 650px;
+    min-height: 500px;
   }
 `;
 PlayingField.displayName = "PlayingField";
 
 // Area containing chips and game controls
 const ActionPanel = styled.div`
-  margin-top: 1rem;
+  margin-top: auto;
   padding-bottom: 0.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
+  position: sticky;
+  bottom: 0;
+  background-color: #15803d;
+  z-index: 10;
 
   @media (min-width: 768px) {
-    margin-top: 1.5rem;
+    margin-top: 1rem;
     gap: 1rem;
+    position: relative;
   }
 `;
 ActionPanel.displayName = "ActionPanel";

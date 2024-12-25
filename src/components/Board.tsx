@@ -10,6 +10,13 @@ const BoardContainer = styled.div`
   background-color: #15803d;
   border-radius: 0.75rem;
   box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+  min-height: 100vh;
+  box-sizing: border-box;
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+    gap: 1rem;
+  }
 `;
 
 const Header = styled.div`
@@ -34,6 +41,13 @@ const GameArea = styled.div`
   flex-direction: column;
   gap: 2rem;
   align-items: center;
+  flex: 1;
+  justify-content: space-between;
+  min-height: 0;
+
+  @media (max-width: 768px) {
+    gap: 1rem;
+  }
 `;
 
 const Message = styled.div`
@@ -41,10 +55,15 @@ const Message = styled.div`
   font-weight: 600;
   color: white;
   text-align: center;
-  padding: 1rem;
+  padding: 0.75rem;
   background-color: #166534;
   border-radius: 0.5rem;
   width: 100%;
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+    padding: 0.5rem;
+  }
 `;
 
 interface BoardProps {

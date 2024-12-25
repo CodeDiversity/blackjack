@@ -41,7 +41,7 @@ const CardsWrapper = styled.div`
 
 const CardWrapper = styled(motion.div)`
   position: absolute;
-  scale: 0.95;
+  scale: 0.85;
 
   @media (min-width: 768px) {
     scale: 1;
@@ -88,12 +88,12 @@ const Hand: React.FC<HandProps> = ({
             <CardWrapper
               key={index}
               style={{
-                left: `${index * (window.innerWidth < 768 ? 60 : 90)}px`,
+                left: `${index * (window.innerWidth < 768 ? 55 : 90)}px`,
               }}
               initial={{ opacity: 0, scale: 0.3, x: 200 }}
               animate={{
                 opacity: isDealer && index > (revealIndex ?? -1) ? 0 : 1,
-                scale: window.innerWidth < 768 ? 0.95 : 1,
+                scale: window.innerWidth < 768 ? 0.85 : 1,
                 x: 0,
               }}
               transition={{

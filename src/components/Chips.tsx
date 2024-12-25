@@ -6,7 +6,11 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0 1rem;
+  max-width: 500px;
+  margin: 0 auto;
 `;
 
 const ChipsTotal = styled.div`
@@ -32,33 +36,55 @@ const CurrentBet = styled.div`
 
 const ChipsContainer = styled.div`
   display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
   gap: 0.5rem;
+  width: 100%;
+
+  @media (max-width: 768px) {
+    gap: 0.25rem;
+    padding: 0 0.5rem;
+  }
 `;
 
 const ChipButton = styled.button<{ isEnabled: boolean }>`
-  position: relative;
-  opacity: ${(props) => (props.isEnabled ? 1 : 0.5)};
-  cursor: ${(props) => (props.isEnabled ? "pointer" : "not-allowed")};
-  transition: all 0.2s;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: ${({ isEnabled }) => (isEnabled ? "pointer" : "not-allowed")};
+  opacity: ${({ isEnabled }) => (isEnabled ? 1 : 0.5)};
+  transition: transform 0.2s;
 
-  &:hover {
-    transform: ${(props) => (props.isEnabled ? "translateY(-0.5rem)" : "none")};
+  &:hover:enabled {
+    transform: translateY(-2px);
+  }
+
+  @media (max-width: 768px) {
+    transform: scale(0.9);
+
+    &:hover:enabled {
+      transform: scale(0.9) translateY(-2px);
+    }
   }
 `;
 
 const Chip = styled.div<{ color: string }>`
-  width: 4rem;
-  height: 4rem;
-  border-radius: 9999px;
-  border: 4px solid;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
   font-weight: bold;
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-  transition: transform 0.2s;
-  ${(props) => getChipStyles(parseInt(props.color))}
+  color: white;
+  border: 4px dashed;
+  ${({ color }) => getChipStyles(Number(color))}
+
+  @media (max-width: 768px) {
+    width: 50px;
+    height: 50px;
+    font-size: 0.875rem;
+  }
 `;
 
 const getChipStyles = (value: number) => {
