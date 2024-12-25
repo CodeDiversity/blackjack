@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import { motion } from "framer-motion";
 import { Hand as HandType } from "../types/game";
 import Card from "./Card";
 import { calculateHandScore } from "../utils/deckUtils";
+import { playCardFlip } from "../utils/soundUtils";
 
 const HandContainer = styled.div`
   display: flex;
@@ -53,6 +54,7 @@ interface HandProps {
   isDealer?: boolean;
   hideHoleCard?: boolean;
   revealIndex?: number;
+  onCardAnimationComplete?: () => void;
 }
 
 const Hand: React.FC<HandProps> = ({
@@ -60,7 +62,10 @@ const Hand: React.FC<HandProps> = ({
   isDealer,
   hideHoleCard,
   revealIndex,
+  onCardAnimationComplete,
 }) => {
+  const [animatingCardIndex, setAnimatingCardIndex] = useState(-1);
+
   if (!hand || !hand.cards) {
     return null;
   }
@@ -100,7 +105,18 @@ const Hand: React.FC<HandProps> = ({
                 type: "spring",
                 stiffness: 260,
                 damping: 20,
-                delay: index * 0.1,
+                delay: index * 0.3,
+              }}
+              onAnimationStart={() => {
+                if (!isDealer || index <= (revealIndex ?? -1)) {
+                  playCardFlip();
+                  setAnimatingCardIndex(index);
+                }
+              }}
+              onAnimationComplete={() => {
+                if (index === hand.cards.length - 1) {
+                  onCardAnimationComplete?.();
+                }
               }}
             >
               <Card card={card} isHidden={hideHoleCard && index === 1} />

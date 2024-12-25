@@ -129,30 +129,34 @@ export const handleHit = createAsyncThunk(
   'game/hit',
   async (_, { getState, dispatch }) => {
     const state = getState() as RootState;
-    if (state.game.gameStatus !== 'playing') return null;
+
+    // Check if player is already busted or not in playing state
+    if (state.game.gameStatus !== 'playing' || state.game.playerHand.isBusted) {
+      return null;
+    }
 
     const newDeck = [...state.game.deck];
     const newCard = newDeck.pop()!;
     const newCards = [...state.game.playerHand.cards, newCard];
     const score = calculateHandScore(newCards);
     const isBusted = score > 21;
-
-    // Store current bet amount before it's reset
     const betAmount = state.game.currentBet;
 
-    // Auto-stand on 21
-    if (score === 21) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      await (dispatch as AppDispatch)(handleStand()).unwrap();
-    }
-
-    return {
+    const result = {
       newDeck,
       newCards,
       score,
       isBusted,
-      betAmount  // Pass the bet amount to the reducer
+      betAmount,
+      waitForAnimation: true
     };
+
+    // Only start dealer's turn if player hits 21 and hasn't busted
+    if (score === 21 && !isBusted) {
+      await (dispatch as AppDispatch)(handleStand()).unwrap();
+    }
+
+    return result;
   }
 );
 
