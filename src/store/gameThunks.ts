@@ -63,18 +63,7 @@ export const handleDealerTurn = createAsyncThunk(
       isBusted: false
     }];
 
-    // Lock game state to dealer turn
-    dispatch(setGameStatus({ status: GameStatus.DealerTurn, message: GameMessage.DealerTurn }));
-
     while (dealerScore <= 16) {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Check game state again to ensure we're still in dealer turn
-      const currentState = getState() as RootState;
-      if (currentState.game.gameStatus !== GameStatus.DealerTurn) {
-        break;
-      }
-
       const newCard = currentDeck.pop()!;
       dealerCards.push(newCard);
       dealerScore = calculateHandScore(dealerCards);
@@ -91,6 +80,8 @@ export const handleDealerTurn = createAsyncThunk(
         hand: currentResult,
         message: `Dealer draws: ${dealerScore}`
       }));
+
+      await new Promise(resolve => setTimeout(resolve, 1500));
     }
 
     const isBusted = dealerScore > 21;
@@ -138,16 +129,19 @@ export const handleHit = createAsyncThunk(
   'game/hit',
   async (_, { getState, dispatch }) => {
     const state = getState() as RootState;
-    if (state.game.gameStatus !== GameStatus.Playing) return null;
+    if (state.game.gameStatus !== 'playing') return null;
 
     const newDeck = [...state.game.deck];
     const newCard = newDeck.pop()!;
     const newCards = [...state.game.playerHand.cards, newCard];
     const score = calculateHandScore(newCards);
     const isBusted = score > 21;
+
+    // Store current bet amount before it's reset
     const betAmount = state.game.currentBet;
 
-    if (score === 21 && state.game.gameStatus === GameStatus.Playing) {
+    // Auto-stand on 21
+    if (score === 21) {
       await new Promise(resolve => setTimeout(resolve, 1000));
       await (dispatch as AppDispatch)(handleStand()).unwrap();
     }
@@ -157,7 +151,7 @@ export const handleHit = createAsyncThunk(
       newCards,
       score,
       isBusted,
-      betAmount
+      betAmount  // Pass the bet amount to the reducer
     };
   }
 );
@@ -193,18 +187,8 @@ export const handleDoubleDown = createAsyncThunk(
 
 export const handleStand = createAsyncThunk<void, void, { state: RootState }>(
   'game/stand',
-  async (_, { dispatch, getState }) => {
-    const state = getState();
-    // Return early if we're not in playing state
-    if (state.game.gameStatus !== GameStatus.Playing) return;
-
-    // Immediately set dealer turn status to prevent any more player actions
+  async (_, { dispatch }) => {
     dispatch(setGameStatus({ status: GameStatus.DealerTurn, message: GameMessage.DealerTurn }));
-
-    // Small delay to ensure state update propagates
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    // Start dealer's turn
     await (dispatch as AppDispatch)(handleDealerTurn()).unwrap();
   }
 );
