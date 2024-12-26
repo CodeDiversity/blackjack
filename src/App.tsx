@@ -29,8 +29,6 @@ import Controls from "./components/Controls";
 import Chips from "./components/Chips";
 import BettingHistory from "./components/BettingHistory";
 import ErrorBoundary from "./components/ErrorBoundary";
-import { ThunkDispatch, UnknownAction } from "@reduxjs/toolkit";
-import { RootState } from "./store/store";
 import StatsDisplay from "./components/StatsDisplay";
 import OptionsMenu from "./components/OptionsMenu";
 import { loadOptions, saveOptions } from "./utils/optionsStorage";
@@ -247,12 +245,7 @@ const ButtonGroup = styled.div`
 ButtonGroup.displayName = "ButtonGroup";
 
 function App() {
-  const dispatch = useAppDispatch() as ThunkDispatch<
-    RootState,
-    unknown,
-    UnknownAction
-  > &
-    AppDispatch;
+  const dispatch = useAppDispatch() as AppDispatch;
   const gameState = useAppSelector(selectGameState);
   const canDoubleDown = useAppSelector(selectCanDoubleDown);
   const displayedCardCount = useAppSelector(selectDisplayedCardCount);

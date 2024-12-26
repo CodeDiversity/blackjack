@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { motion } from "framer-motion";
 import { Hand as HandType } from "../types/game";
@@ -71,27 +71,40 @@ const Hand: React.FC<HandProps> = ({
   const dispatch = useDispatch();
   const currentBet = useSelector((state: RootState) => state.game.currentBet);
   const [animatingCardIndex, setAnimatingCardIndex] = useState(-1);
+  const [displayScore, setDisplayScore] = useState(0);
+
+  useEffect(() => {
+    if (!isDealer || hideHoleCard) {
+      setDisplayScore(hand.score);
+    }
+  }, [hand.score, isDealer, hideHoleCard]);
 
   if (!hand || !hand.cards) {
     return null;
   }
 
-  const getDisplayScore = () => {
-    if (isDealer && hideHoleCard) {
-      return calculateHandScore([hand.cards[0]]);
+  const handleAnimationComplete = (index: number) => {
+    if (isDealer && index === hand.cards.length - 1) {
+      // Calculate final score after last card animation
+      const score = calculateHandScore(hand.cards);
+      const isBusted = score > 21;
+      
+      setDisplayScore(score);
+      
+      // Handle game outcomes
+      if (isBusted) {
+        dispatch(handleBustAnimation(currentBet));
+      } else if (score === 21) {
+        dispatch(handleStand());
+      }
     }
-    if (isDealer) {
-      return calculateHandScore(hand.cards.slice(0, (revealIndex ?? 0) + 1));
-    }
-    return hand.score;
   };
-
-  const displayScore = getDisplayScore();
 
   return (
     <HandContainer>
       <Score>
-        {isDealer ? "Dealer" : "Player"}: {displayScore}
+        {isDealer ? "Dealer" : "Player"}
+        {displayScore > 0 && `: ${displayScore}`}
       </Score>
       <CardsContainer>
         <CardsWrapper>
@@ -111,7 +124,6 @@ const Hand: React.FC<HandProps> = ({
                 type: "spring",
                 stiffness: 260,
                 damping: 20,
-                delay: index * 0.3,
               }}
               onAnimationStart={() => {
                 if (!isDealer || index <= (revealIndex ?? -1)) {
@@ -119,15 +131,7 @@ const Hand: React.FC<HandProps> = ({
                   setAnimatingCardIndex(index);
                 }
               }}
-              onAnimationComplete={() => {
-                if (index === hand.cards.length - 1) {
-                  if (hand.isBusted) {
-                    dispatch(handleBustAnimation(currentBet));
-                  } else if (hand.score === 21) {
-                    dispatch(handleStand());
-                  }
-                }
-              }}
+              onAnimationComplete={() => handleAnimationComplete(index)}
             >
               <Card card={card} isHidden={hideHoleCard && index === 1} />
             </CardWrapper>

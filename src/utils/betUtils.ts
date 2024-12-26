@@ -5,8 +5,16 @@ export function calculateWinnings(
   playerScore: number,
   currentBet: number,
   dealerBusted: boolean,
-  isBlackjack = false
+  isBlackjack = false,
+  isDealerBlackjack = false
 ): { message: string; amount: number } {
+  if (isDealerBlackjack) {
+    return {
+      message: 'Dealer Blackjack!',
+      amount: 0
+    };
+  }
+
   if (isBlackjack) {
     return {
       message: 'Blackjack! You win!',

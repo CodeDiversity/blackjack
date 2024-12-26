@@ -116,7 +116,7 @@ const gameSlice = createSlice({
       })
       .addCase(handleHit.fulfilled, (state, action) => {
         if (!action.payload) return;
-        const { newDeck, newCards, score, isBusted, betAmount, shouldStartDealerTurn } = action.payload;
+        const { newDeck, newCards, score, isBusted, shouldStartDealerTurn } = action.payload;
 
         state.deck = newDeck;
         state.playerHand = {

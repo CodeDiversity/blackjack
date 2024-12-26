@@ -73,6 +73,7 @@ interface ControlsProps {
   onReset: () => void;
   onPlacePreviousBet: (multiplier?: number) => void;
   onDeal: () => void;
+  onNewGame: () => void;
   gameStatus: string;
   previousBet: number;
   chips: number;
@@ -89,6 +90,7 @@ const Controls: React.FC<ControlsProps> = ({
   onReset,
   onPlacePreviousBet,
   onDeal,
+  onNewGame,
   gameStatus,
   previousBet,
   chips,

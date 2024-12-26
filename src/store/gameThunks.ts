@@ -1,5 +1,5 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { createDeck, calculateHandScore } from '../utils/deckUtils';
+import { createDeck, calculateHandScore, hasBlackjack } from '../utils/deckUtils';
 import { calculateWinnings } from '../utils/betUtils';
 import { Card, GameStatus, GameMessage } from '../types/game';
 import { placeBet, setGameStatus, updateDealerHand, clearBet } from './gameSlice';
@@ -31,8 +31,16 @@ export const startNewHand = createAsyncThunk<StartHandResult | null, void, { sta
     const playerCards = [currentDeck.pop()!, currentDeck.pop()!];
     const dealerCards = [currentDeck.pop()!, currentDeck.pop()!];
 
-    // Auto-stand on initial 21
-    if (calculateHandScore(playerCards) === 21) {
+    // Check for dealer blackjack first
+    if (hasBlackjack(dealerCards)) {
+      setTimeout(async () => {
+        // Force dealer turn to reveal cards and end game
+        dispatch(setGameStatus({ status: GameStatus.DealerTurn, message: GameMessage.DealerBlackjack }));
+        await (dispatch as AppDispatch)(handleDealerTurn()).unwrap();
+      }, 1000);
+    }
+    // Only check for player blackjack if dealer doesn't have it
+    else if (hasBlackjack(playerCards)) {
       setTimeout(async () => {
         await (dispatch as AppDispatch)(handleStand()).unwrap();
       }, 1000);
@@ -53,55 +61,57 @@ export const handleDealerTurn = createAsyncThunk(
     const state = getState() as RootState;
     const currentDeck = [...state.game.deck];
     const dealerCards = [...state.game.dealerHand.cards];
-    let dealerScore = calculateHandScore(dealerCards);
 
-    // Check if player has blackjack (21 with exactly 2 cards)
+    // Check for blackjacks
     const isBlackjack = state.game.playerHand.score === 21 &&
       state.game.playerHand.cards.length === 2;
+    const isDealerBlackjack = hasBlackjack(dealerCards);
 
-    // Initialize results with current hand
+    // Initialize results array
     const results = [{
       cards: [...dealerCards],
-      score: dealerScore,
+      score: calculateHandScore(dealerCards),
       isBusted: false
     }];
 
-    while (dealerScore < 17) {
+    // Draw cards if needed (not blackjack)
+    let finalDealerScore = calculateHandScore(dealerCards);
+    while (finalDealerScore < 17 && !isDealerBlackjack) {
       const newCard = currentDeck.pop()!;
       dealerCards.push(newCard);
-      dealerScore = calculateHandScore(dealerCards);
+      finalDealerScore = calculateHandScore(dealerCards);
 
       const currentResult = {
         cards: [...dealerCards],
-        score: dealerScore,
-        isBusted: dealerScore > 21
+        score: finalDealerScore,
+        isBusted: finalDealerScore > 21
       };
 
       results.push(currentResult);
 
       dispatch(updateDealerHand({
         hand: currentResult,
-        message: `Dealer draws: ${dealerScore}`
+        message: "Dealer draws..."
       }));
 
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
-    const isBusted = dealerScore > 21;
+    const isBusted = finalDealerScore > 21;
     const winnings = calculateWinnings(
-      dealerScore,
+      finalDealerScore,
       state.game.playerHand.score,
       state.game.currentBet,
       isBusted,
-      isBlackjack
+      isBlackjack,
+      isDealerBlackjack
     );
 
     return {
       dealerResults: results,
       currentDeck,
       winnings,
-      isBusted,
-      finalScore: dealerScore
+      finalScore: finalDealerScore
     };
   }
 );

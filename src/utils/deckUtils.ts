@@ -51,3 +51,7 @@ export function calculateHandScore(cards: Card[]): number {
 
   return score;
 }
+
+export function hasBlackjack(cards: Card[]): boolean {
+  return calculateHandScore(cards) === 21 && cards.length === 2;
+}

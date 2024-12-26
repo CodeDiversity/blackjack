@@ -33,7 +33,8 @@ export enum GameMessage {
   PlayerBust = 'Bust! Dealer wins!',
   Push = 'Push!',
   PlayerWins = 'You win!',
-  DealerWins = 'Dealer wins!'
+  DealerWins = 'Dealer wins!',
+  DealerBlackjack = 'Dealer Blackjack!'
 }
 
 export interface GameState {
