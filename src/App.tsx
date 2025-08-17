@@ -399,6 +399,7 @@ function App() {
                   onNewGame={handleStartNewGame}
                   onReset={handleResetGame}
                   onPlacePreviousBet={handlePlacePreviousBet}
+                  onPlaceBet={handlePlaceBet}
                   onDeal={handleStartNewHand}
                   gameStatus={gameState.gameStatus}
                   previousBet={gameState.previousBet}

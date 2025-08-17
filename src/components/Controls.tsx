@@ -72,6 +72,7 @@ interface ControlsProps {
   onDoubleDown: () => void;
   onReset: () => void;
   onPlacePreviousBet: (multiplier?: number) => void;
+  onPlaceBet: (amount: number) => void;
   onDeal: () => void;
   onNewGame: () => void;
   gameStatus: string;
@@ -89,6 +90,7 @@ const Controls: React.FC<ControlsProps> = ({
   onDoubleDown,
   onReset,
   onPlacePreviousBet,
+  onPlaceBet,
   onDeal,
   // onNewGame - unused in current implementation
   gameStatus,
@@ -134,17 +136,17 @@ const Controls: React.FC<ControlsProps> = ({
                 <Button variant="red" onClick={onClearBet}>
                   Clear Bet
                 </Button>
-                {chips >= currentBet * 2 && (
+                {chips >= currentBet && (
                   <Button
                     variant="purple"
-                    onClick={() => onPlacePreviousBet(2)}
+                    onClick={() => onPlaceBet(currentBet)}
                   >
-                    ${currentBet * 2}
+                    +${currentBet}
                   </Button>
                 )}
-                {chips >= currentBet * 3 && (
-                  <Button variant="green" onClick={() => onPlacePreviousBet(3)}>
-                    ${currentBet * 3}
+                {chips >= currentBet * 2 && (
+                  <Button variant="green" onClick={() => onPlaceBet(currentBet * 2)}>
+                    +${currentBet * 2}
                   </Button>
                 )}
               </>
