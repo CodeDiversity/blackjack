@@ -131,7 +131,10 @@ const gameStateSlice = createSlice({
         };
 
         if (isBusted) {
+          state.gameStatus = GameStatus.Finished;
           state.message = GameMessage.PlayerBust;
+          state.nextGameStatus = GameStatus.Betting;
+          state.nextMessage = GameMessage.PlaceBet;
         }
       })
       .addCase(handleDoubleDown.fulfilled, (state, action) => {
