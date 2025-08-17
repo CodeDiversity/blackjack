@@ -65,7 +65,7 @@ export const handleHit = createAsyncThunk<
   } | null,
   void,
   { state: RootState }
->('newGame/handleHit', async (_, { getState }) => {
+>('newGame/handleHit', async (_, { getState, dispatch }) => {
   const state = getState();
   
   if (state.gameState.gameStatus !== GameStatus.Playing) {
@@ -76,6 +76,12 @@ export const handleHit = createAsyncThunk<
   const newCards = [...state.gameState.playerHand.cards, newCard];
   const score = calculateHandScore(newCards);
   const isBusted = score > 21;
+  
+  // If player busts, handle the loss immediately
+  if (isBusted) {
+    console.log('Player busted, calling handlePlayerBust');
+    dispatch(handlePlayerBust()).unwrap().catch(() => {});
+  }
   
   return {
     newDeck,
@@ -129,6 +135,12 @@ export const handleDoubleDown = createAsyncThunk<
   const newCards = [...state.gameState.playerHand.cards, newCard];
   const score = calculateHandScore(newCards);
   const isBusted = score > 21;
+  
+  // If player busts, handle the loss immediately
+  if (isBusted) {
+    console.log('Player busted on double down, calling handlePlayerBust');
+    dispatch(handlePlayerBust()).unwrap().catch(() => {});
+  }
   
   return {
     newDeck,
@@ -204,6 +216,8 @@ export const handleDealerTurn = createAsyncThunk<
   } else {
     gameResultType = 'loss';
   }
+  
+  
   dispatch(recordGameResult({
     result: gameResultType,
     amount: betAmount,
@@ -229,6 +243,34 @@ export const placePreviousBet = createAsyncThunk<
   
   if (state.betting.chips >= amount && state.betting.previousBet > 0) {
     dispatch(placePreviousBetAction(actualMultiplier));
+  }
+});
+
+// Handle player bust
+export const handlePlayerBust = createAsyncThunk<
+  void,
+  void,
+  { state: RootState }
+>('newGame/handlePlayerBust', async (_, { getState, dispatch }) => {
+  const state = getState();
+  const betAmount = state.betting.currentBet;
+  
+  console.log('handlePlayerBust called with betAmount:', betAmount);
+  
+  if (betAmount > 0) {
+    // Record the loss
+    dispatch(recordGameResult({
+      result: 'loss',
+      amount: betAmount,
+      winnings: 0
+    }));
+    
+    // Finalize the bet
+    dispatch(finalizeBet({
+      amount: betAmount,
+      won: false,
+      timestamp: new Date()
+    }));
   }
 });
 

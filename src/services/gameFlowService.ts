@@ -32,6 +32,16 @@ export class GameFlowService {
   ): GameResult {
     const playerScore = playerHand.score;
     const dealerScore = dealerHand.score;
+    
+    console.log('GameFlowService.determineGameResult:', {
+      playerScore,
+      dealerScore,
+      playerCards: playerHand.cards.length,
+      dealerCards: dealerHand.cards.length,
+      playerBusted: playerHand.isBusted,
+      dealerBusted: dealerHand.isBusted,
+      betAmount
+    });
 
     // Player bust
     if (playerHand.isBusted) {
@@ -91,6 +101,7 @@ export class GameFlowService {
 
     // Regular comparison
     if (playerScore > dealerScore) {
+      console.log('GameResult: Player wins');
       return {
         type: 'win',
         playerScore,
@@ -99,6 +110,7 @@ export class GameFlowService {
         message: GameMessage.PlayerWins
       };
     } else if (dealerScore > playerScore) {
+      console.log('GameResult: Dealer wins (should be loss)');
       return {
         type: 'loss',
         playerScore,
@@ -107,6 +119,7 @@ export class GameFlowService {
         message: GameMessage.DealerWins
       };
     } else {
+      console.log('GameResult: Push (tie)');
       return {
         type: 'push',
         playerScore,

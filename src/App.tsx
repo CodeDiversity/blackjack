@@ -257,8 +257,8 @@ function App() {
   );
 
   // Action handlers
-  const handleStartNewHand = () => dispatch(startNewHand());
-  const handlePlayerHit = () => dispatch(handleHit());
+  const handleStartNewHand = () => dispatch(startNewHand()).unwrap().catch(() => {});
+  const handlePlayerHit = () => dispatch(handleHit()).unwrap().catch(() => {});
   const handlePlayerStand = async () => {
     try {
       await dispatch(handleStand()).unwrap();

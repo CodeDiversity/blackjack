@@ -1,16 +1,10 @@
-import { configureStore, Middleware, combineReducers } from '@reduxjs/toolkit';
-import gameStateReducer, { CoreGameState } from './gameStateSlice';
-import bettingReducer, { BettingState } from './bettingSlice';
-import statisticsReducer, { StatisticsState } from './statisticsSlice';
-import { persistMiddleware } from './persistMiddleware';
+import { combineReducers, configureStore, Middleware, ThunkAction, Action } from '@reduxjs/toolkit';
 import { BetResult } from '../types/game';
+import bettingReducer from './bettingSlice';
+import gameStateReducer from './gameStateSlice';
+import { persistMiddleware } from './persistMiddleware';
+import statisticsReducer from './statisticsSlice';
 
-// Combined root state interface
-export interface RootState {
-  gameState: CoreGameState;
-  betting: BettingState;
-  statistics: StatisticsState;
-}
 
 // Root reducer combining all slices
 const rootReducer = combineReducers({
@@ -19,20 +13,25 @@ const rootReducer = combineReducers({
   statistics: statisticsReducer
 });
 
+// Define RootState type from root reducer
+export type RootState = ReturnType<typeof rootReducer>;
+
 // Load state from localStorage
 function loadState(): Partial<RootState> | undefined {
   try {
     const serializedState = localStorage.getItem('blackjack-state');
     if (!serializedState) return undefined;
 
-    const state = JSON.parse(serializedState);
+    const state = JSON.parse(serializedState) as Partial<RootState>;
     
     // Handle betting history timestamp conversion
     if (state.betting?.bettingHistory) {
       state.betting.bettingHistory = state.betting.bettingHistory.map((bet: Partial<BetResult>) => ({
         ...bet,
-        timestamp: new Date(bet.timestamp as unknown as string)
-      }));
+        timestamp: new Date(bet.timestamp as unknown as string),
+        amount: bet.amount ?? 0,
+        won: bet.won ?? false,
+      })) as BetResult[];
     }
     
     return state;
@@ -42,35 +41,34 @@ function loadState(): Partial<RootState> | undefined {
   }
 }
 
-// Create store with new modular structure
-const createStoreWithState = (): ReturnType<typeof configureStore> => {
-  return configureStore({
-    reducer: rootReducer,
-    preloadedState: loadState(),
-    middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware({
-        serializableCheck: {
-          ignoredActions: [
-            'game/dealerTurn/fulfilled',
-            'betting/finalizeBet',
-            'statistics/recordGameResult'
-          ],
-          ignoredPaths: [
-            'betting.bettingHistory',
-            'betting.bettingHistory.timestamp'
-          ]
-        },
-      }).concat(persistMiddleware as unknown as Middleware),
-  });
-};
-
 // Create store instance
-export const store = createStoreWithState();
+export const store = configureStore({
+  reducer: rootReducer,
+  preloadedState: loadState(),
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: [
+          'game/dealerTurn/fulfilled',
+          'betting/finalizeBet',
+          'statistics/recordGameResult'
+        ],
+        ignoredPaths: [
+          'betting.bettingHistory',
+          'betting.bettingHistory.timestamp'
+        ]
+      },
+    }).concat(persistMiddleware as unknown as Middleware),
+});
 
 // Define types from store instance
-export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
-export type AppState = ReturnType<typeof createStoreWithState>;
+export type AppThunk<ReturnType = void> = ThunkAction<
+  ReturnType,
+  RootState,
+  unknown,
+  Action<string>
+>;
 
 // Utility function to get combined game state for backward compatibility
 export const getCombinedGameState = (state: RootState) => ({
