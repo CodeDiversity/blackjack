@@ -4,19 +4,32 @@ import { StateBuilders, StateUpdate } from '../utils/stateBuilders';
 import { startNewHand, handleHit, handleDealerTurn, handleDoubleDown, handleBustAnimation } from './gameThunks';
 import { calculateHandScore, createNewDeck } from '../utils/deckUtils';
 
-// Core game state (hands, deck, status, message)
+/**
+ * Core game state containing hands, deck, game status, and UI state.
+ * This represents the essential blackjack game state without betting or statistics.
+ */
 export interface CoreGameState {
+  /** The player's current hand */
   playerHand: Hand;
+  /** The dealer's current hand */
   dealerHand: Hand;
+  /** The remaining cards in the deck */
   deck: Card[];
+  /** Current phase of the game */
   gameStatus: GameStatus;
+  /** Current message to display to the user */
   message: string;
+  /** Index of the last revealed dealer card */
   revealIndex: number;
+  /** Next game status for transitions */
   nextGameStatus?: GameStatus;
+  /** Next message for transitions */
   nextMessage?: string;
+  /** Whether to show confetti animation */
   showConfetti: boolean;
 }
 
+/** Initial state for the core game state */
 const initialCoreState: CoreGameState = {
   playerHand: {
     cards: [],
@@ -35,38 +48,75 @@ const initialCoreState: CoreGameState = {
   showConfetti: false
 };
 
+/**
+ * Redux slice for managing core game state.
+ * Handles game flow, card dealing, and player/dealer actions.
+ */
 const gameStateSlice = createSlice({
   name: 'gameState',
   initialState: initialCoreState,
   reducers: {
+    /**
+     * Applies a partial state update using the StateBuilders pattern.
+     * @param state - Current state
+     * @param action - Action containing the state update
+     */
     updateGameState: (state, action: PayloadAction<StateUpdate>) => {
       // Apply state update using builders
       Object.assign(state, action.payload);
     },
     
+    /**
+     * Updates the game status and message.
+     * @param state - Current state
+     * @param action - Action containing status and message
+     */
     setGameStatus: (state, action: PayloadAction<{ status: GameStatus; message: string }>) => {
       state.gameStatus = action.payload.status;
       state.message = action.payload.message;
     },
     
+    /**
+     * Updates the player's hand.
+     * @param state - Current state
+     * @param action - Action containing the new player hand
+     */
     updatePlayerHand: (state, action: PayloadAction<Hand>) => {
       state.playerHand = action.payload;
     },
     
+    /**
+     * Updates the dealer's hand and reveals cards as needed.
+     * @param state - Current state
+     * @param action - Action containing the new dealer hand and message
+     */
     updateDealerHand: (state, action: PayloadAction<{ hand: Hand; message: string }>) => {
       state.dealerHand = action.payload.hand;
       state.message = action.payload.message;
       state.revealIndex = state.dealerHand.cards.length;
     },
     
+    /**
+     * Sets the reveal index for dealer cards.
+     * @param state - Current state
+     * @param action - Action containing the reveal index
+     */
     setRevealIndex: (state, action: PayloadAction<number>) => {
       state.revealIndex = action.payload;
     },
     
+    /**
+     * Resets the game to initial state for a new game.
+     * @param state - Current state
+     */
     startNewGame: (state) => {
       Object.assign(state, StateBuilders.buildNewGameState());
     },
     
+    /**
+     * Transitions to the betting phase if a next status is set.
+     * @param state - Current state
+     */
     transitionToBetting: (state) => {
       if (state.nextGameStatus) {
         const transition = StateBuilders.buildTransitionState(
@@ -77,10 +127,19 @@ const gameStateSlice = createSlice({
       }
     },
     
+    /**
+     * Controls the confetti animation visibility.
+     * @param state - Current state
+     * @param action - Action containing whether to show confetti
+     */
     setShowConfetti: (state, action: PayloadAction<boolean>) => {
       state.showConfetti = action.payload;
     },
     
+    /**
+     * Clears the next transition state.
+     * @param state - Current state
+     */
     clearNextTransition: (state) => {
       state.nextGameStatus = undefined;
       state.nextMessage = undefined;

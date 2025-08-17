@@ -8,6 +8,7 @@ import { calculateHandScore } from "../utils/deckUtils";
 import { playCardFlip } from "../utils/soundUtils";
 import Card from "./Card";
 
+/** Container for the hand display including score and cards */
 const HandContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -15,12 +16,14 @@ const HandContainer = styled.div`
   gap: 0.5rem;
 `;
 
+/** Score display showing player/dealer name and current score */
 const Score = styled.div`
   font-size: 1.125rem;
   font-weight: 600;
   color: #f1f5f9;
 `;
 
+/** Container for positioning cards with responsive height */
 const CardsContainer = styled.div`
   position: relative;
   height: 24px;
@@ -32,6 +35,7 @@ const CardsContainer = styled.div`
   }
 `;
 
+/** Wrapper for centering cards with responsive width */
 const CardsWrapper = styled.div`
   position: relative;
   width: 200px;
@@ -42,6 +46,7 @@ const CardsWrapper = styled.div`
   }
 `;
 
+/** Animated wrapper for individual cards */
 const CardWrapper = styled(motion.div)`
   position: absolute;
   scale: 0.85;
@@ -51,14 +56,30 @@ const CardWrapper = styled(motion.div)`
   }
 `;
 
+/**
+ * Props for the Hand component.
+ */
 interface HandProps {
+  /** The hand data to display */
   hand: HandType;
+  /** Whether this is the dealer's hand (affects display logic) */
   isDealer?: boolean;
+  /** Whether to hide the dealer's hole card (second card) */
   hideHoleCard?: boolean;
+  /** Index of the last revealed dealer card */
   revealIndex?: number;
-  onCardAnimationComplete?: () => void; // currently unused
+  /** Callback when card animation completes (currently unused) */
+  onCardAnimationComplete?: () => void;
 }
 
+/**
+ * Component that displays a hand of cards with animations.
+ * Shows the player or dealer name, current score, and animated cards.
+ * Handles card reveal animations and auto-actions for busts and 21s.
+ * 
+ * @param props - The hand props
+ * @returns A hand display with animated cards
+ */
 const Hand: React.FC<HandProps> = ({
   hand,
   isDealer,
@@ -69,6 +90,7 @@ const Hand: React.FC<HandProps> = ({
   const dispatch = useAppDispatch();
   const [displayScore, setDisplayScore] = useState(0);
 
+  // Update display score when hand changes
   useEffect(() => {
     if (!isDealer || hideHoleCard) {
       setDisplayScore(hand.score);
@@ -79,6 +101,11 @@ const Hand: React.FC<HandProps> = ({
     return null;
   }
 
+  /**
+   * Handles completion of card animation.
+   * Triggers auto-actions for busts and 21s after the last card is animated.
+   * @param index - Index of the card that finished animating
+   */
   const handleAnimationComplete = (index: number) => {
     if (index === hand.cards.length - 1) {
       // Calculate final score after last card animation
