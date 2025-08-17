@@ -1,5 +1,18 @@
+/** Initial chip amount when starting a new game */
 export const INITIAL_CHIPS = 5000;
 
+/**
+ * Calculates winnings based on game outcome according to blackjack rules.
+ * Handles all possible game endings including blackjacks, busts, and regular wins.
+ * 
+ * @param dealerScore - Final score of the dealer's hand
+ * @param playerScore - Final score of the player's hand  
+ * @param currentBet - Amount bet on this round
+ * @param dealerBusted - Whether the dealer busted (exceeded 21)
+ * @param isBlackjack - Whether the player has blackjack (21 with 2 cards)
+ * @param isDealerBlackjack - Whether the dealer has blackjack
+ * @returns Object containing the result message and winnings amount
+ */
 export function calculateWinnings(
   dealerScore: number,
   playerScore: number,
