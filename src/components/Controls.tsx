@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 
+/** Main container for all control buttons */
 const Container = styled.div`
   display: grid;
   gap: 0.5rem;
@@ -11,6 +12,7 @@ const Container = styled.div`
   }
 `;
 
+/** Horizontal row of buttons with responsive layout */
 const ButtonRow = styled.div`
   display: flex;
   gap: 0.25rem;
@@ -23,6 +25,7 @@ const ButtonRow = styled.div`
   }
 `;
 
+/** Styled button with color variants */
 const Button = styled.button<{
   variant: "red" | "green" | "purple" | "yellow";
 }>`
@@ -66,24 +69,50 @@ const Button = styled.button<{
   }}
 `;
 
+/**
+ * Props for the Controls component.
+ */
 interface ControlsProps {
+  /** Callback when player hits */
   onHit: () => void;
+  /** Callback when player stands */
   onStand: () => void;
+  /** Callback when player doubles down */
   onDoubleDown: () => void;
+  /** Callback to reset the game */
   onReset: () => void;
+  /** Callback to place a previous bet with optional multiplier */
   onPlacePreviousBet: (multiplier?: number) => void;
+  /** Callback to place a specific bet amount */
   onPlaceBet: (amount: number) => void;
+  /** Callback to deal cards */
   onDeal: () => void;
+  /** Callback to start a new game (currently unused) */
   onNewGame: () => void;
+  /** Current game status */
   gameStatus: string;
+  /** Previous bet amount for quick rebetting */
   previousBet: number;
+  /** Current chip count */
   chips: number;
+  /** Whether the player can double down */
   canDoubleDown: boolean;
+  /** Whether cards can be dealt */
   canDealCards: boolean;
+  /** Callback to clear the current bet */
   onClearBet: () => void;
+  /** Current bet amount */
   currentBet: number;
 }
 
+/**
+ * Game controls component that displays appropriate buttons based on game state.
+ * Shows different sets of buttons for betting phase vs playing phase.
+ * Provides quick betting options and game actions like hit, stand, double down.
+ * 
+ * @param props - The controls props
+ * @returns A responsive set of game control buttons
+ */
 const Controls: React.FC<ControlsProps> = ({
   onHit,
   onStand,
@@ -107,6 +136,7 @@ const Controls: React.FC<ControlsProps> = ({
   return (
     <Container>
       <ButtonRow>
+        {/* Playing phase buttons */}
         {canAct && (
           <>
             <Button variant="green" onClick={onHit}>
@@ -124,6 +154,7 @@ const Controls: React.FC<ControlsProps> = ({
           </>
         )}
 
+        {/* Betting phase buttons */}
         {isBetting && (
           <>
             {canDealCards && (
@@ -151,6 +182,7 @@ const Controls: React.FC<ControlsProps> = ({
                 )}
               </>
             )}
+            {/* Previous bet quick options */}
             {previousBet > 0 && !currentBet && (
               <>
                 {chips >= previousBet && (
@@ -176,6 +208,7 @@ const Controls: React.FC<ControlsProps> = ({
                 )}
               </>
             )}
+            {/* Reset button when out of chips */}
             {chips <= 0 && (
               <Button variant="red" onClick={onReset}>
                 Reset Game
@@ -184,6 +217,7 @@ const Controls: React.FC<ControlsProps> = ({
           </>
         )}
 
+        {/* Reset button when game is finished and out of chips */}
         {gameStatus === "finished" && chips <= 0 && (
           <Button variant="red" onClick={onReset}>
             Reset Game

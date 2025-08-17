@@ -2,6 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import { Card as CardType } from "../types/game";
 
+/** Container for the card with 3D flip animation */
 const CardContainer = styled.div<{ isHidden: boolean }>`
   position: relative;
   width: 70px;
@@ -16,6 +17,7 @@ const CardContainer = styled.div<{ isHidden: boolean }>`
   }
 `;
 
+/** Base card face with flip animation */
 const CardFace = styled.div<{ isHidden: boolean }>`
   position: absolute;
   width: 100%;
@@ -28,6 +30,7 @@ const CardFace = styled.div<{ isHidden: boolean }>`
     isHidden ? "rotateY(180deg)" : "rotateY(0deg)"};
 `;
 
+/** Front face of the card showing the suit and value */
 const FrontFace = styled(CardFace)`
   background-color: white;
   display: flex;
@@ -35,6 +38,7 @@ const FrontFace = styled(CardFace)`
   padding: 0.5rem;
 `;
 
+/** Back face of the card with blue pattern */
 const BackFace = styled(CardFace)`
   background-color: #1e40af;
   background-image: linear-gradient(
@@ -52,6 +56,7 @@ const BackFace = styled(CardFace)`
     isHidden ? "rotateY(360deg)" : "rotateY(180deg)"};
 `;
 
+/** Corner element showing card value and suit */
 const Corner = styled.div<{ isRed?: boolean; isBottom?: boolean }>`
   display: flex;
   flex-direction: column;
@@ -65,6 +70,7 @@ const Corner = styled.div<{ isRed?: boolean; isBottom?: boolean }>`
       : "top: 0.5rem; left: 0.5rem;"}
 `;
 
+/** Card value text (2-10, J, Q, K, A) */
 const Value = styled.span`
   font-size: 1.125rem;
   line-height: 1;
@@ -74,6 +80,7 @@ const Value = styled.span`
   }
 `;
 
+/** Suit symbol text (♥, ♦, ♣, ♠) */
 const Suit = styled.span`
   font-size: 0.875rem;
   line-height: 1;
@@ -83,11 +90,21 @@ const Suit = styled.span`
   }
 `;
 
+/**
+ * Props for the Card component.
+ */
 interface CardProps {
+  /** The card data to display */
   card: CardType;
+  /** Whether the card should be shown face-down */
   isHidden?: boolean;
 }
 
+/**
+ * Converts a suit name to its Unicode symbol.
+ * @param suit - The suit name (hearts, diamonds, clubs, spades)
+ * @returns The corresponding Unicode symbol
+ */
 const getSuitSymbol = (suit: string) => {
   switch (suit) {
     case "hearts":
@@ -103,6 +120,14 @@ const getSuitSymbol = (suit: string) => {
   }
 };
 
+/**
+ * A playing card component with flip animation.
+ * Shows the card face when revealed, or the card back when hidden.
+ * Red suits (hearts, diamonds) are colored red, black suits are blue.
+ * 
+ * @param props - The card props
+ * @returns A card component with 3D flip animation
+ */
 const Card: React.FC<CardProps> = ({ card, isHidden = false }) => {
   const isRed = card.suit === "hearts" || card.suit === "diamonds";
   const suitSymbol = getSuitSymbol(card.suit);
