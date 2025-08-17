@@ -13,7 +13,7 @@ export function createDeck(): Card[] {
     deck.push({ suit, value: 10, face: 'J' });
     deck.push({ suit, value: 10, face: 'Q' });
     deck.push({ suit, value: 10, face: 'K' });
-    deck.push({ suit, value: 11, face: 'A' }); // Ace can be 1 or 11
+    deck.push({ suit, value: 1, face: 'A' }); // Ace value handled by calculateHandScore
   });
 
   return shuffleDeck(deck);
@@ -54,4 +54,20 @@ export function calculateHandScore(cards: Card[]): number {
 
 export function hasBlackjack(cards: Card[]): boolean {
   return calculateHandScore(cards) === 21 && cards.length === 2;
+}
+
+// Alias for backward compatibility
+export function createNewDeck(): Card[] {
+  return createDeck();
+}
+
+// Deal a card from the deck
+export function dealCard(deck: Card[]): [Card, Card[]] {
+  if (deck.length === 0) {
+    throw new Error('Cannot deal from empty deck');
+  }
+  
+  const newDeck = [...deck];
+  const card = newDeck.pop()!;
+  return [card, newDeck];
 }

@@ -90,7 +90,7 @@ const Controls: React.FC<ControlsProps> = ({
   onReset,
   onPlacePreviousBet,
   onDeal,
-  onNewGame,
+  // onNewGame - unused in current implementation
   gameStatus,
   previousBet,
   chips,

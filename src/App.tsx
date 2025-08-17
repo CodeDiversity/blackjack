@@ -3,19 +3,15 @@ import styled from "styled-components";
 import Confetti from "react-confetti";
 import { useAppDispatch, useAppSelector } from "./store/hooks";
 import {
-  selectGameState,
+  selectLegacyGameState,
   selectCanDoubleDown,
   selectDisplayedCardCount,
   selectCanBet,
   selectCanDealCards,
 } from "./store/selectors";
-import {
-  startNewGame,
-  resetGame,
-  placeBet,
-  transitionToBetting,
-  clearBet,
-} from "./store/gameSlice";
+import { startNewGame, transitionToBetting } from "./store/gameStateSlice";
+import { placeBet as placeBetAction, clearBet } from "./store/bettingSlice";
+import { resetStatistics } from "./store/statisticsSlice";
 import {
   startNewHand,
   handleHit,
@@ -32,7 +28,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import StatsDisplay from "./components/StatsDisplay";
 import OptionsMenu from "./components/OptionsMenu";
 import { loadOptions, saveOptions } from "./utils/optionsStorage";
-import { AppDispatch } from "./types/store";
+import { AppDispatch } from "./store/store";
 
 // Main container for the entire app
 const AppContainer = styled.div`
@@ -246,7 +242,7 @@ ButtonGroup.displayName = "ButtonGroup";
 
 function App() {
   const dispatch = useAppDispatch() as AppDispatch;
-  const gameState = useAppSelector(selectGameState);
+  const gameState = useAppSelector(selectLegacyGameState);
   const canDoubleDown = useAppSelector(selectCanDoubleDown);
   const displayedCardCount = useAppSelector(selectDisplayedCardCount);
   const canBet = useAppSelector(selectCanBet);
@@ -274,9 +270,12 @@ function App() {
     await dispatch(placePreviousBet(multiplier));
   };
   const handleStartNewGame = () => dispatch(startNewGame());
-  const handleResetGame = () => dispatch(resetGame());
+  const handleResetGame = () => {
+    dispatch(startNewGame());
+    dispatch(resetStatistics());
+  };
   const handlePlaceBet = (amount: number) => {
-    dispatch(placeBet(amount));
+    dispatch(placeBetAction(amount));
   };
   const doubleDown = async () => {
     try {

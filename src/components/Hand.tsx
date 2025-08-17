@@ -5,9 +5,8 @@ import { Hand as HandType } from "../types/game";
 import Card from "./Card";
 import { calculateHandScore } from "../utils/deckUtils";
 import { playCardFlip } from "../utils/soundUtils";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppDispatch } from "../store/hooks";
 import { handleBustAnimation } from "../store/gameThunks";
-import { RootState } from "../types/store";
 import { handleStand } from "../store/gameThunks";
 
 const HandContainer = styled.div`
@@ -66,11 +65,9 @@ const Hand: React.FC<HandProps> = ({
   isDealer,
   hideHoleCard,
   revealIndex,
-  onCardAnimationComplete,
+  // onCardAnimationComplete - unused in current implementation
 }) => {
-  const dispatch = useDispatch();
-  const currentBet = useSelector((state: RootState) => state.game.currentBet);
-  const [animatingCardIndex, setAnimatingCardIndex] = useState(-1);
+  const dispatch = useAppDispatch();
   const [displayScore, setDisplayScore] = useState(0);
 
   useEffect(() => {
@@ -93,7 +90,7 @@ const Hand: React.FC<HandProps> = ({
       
       // Handle game outcomes
       if (isBusted) {
-        dispatch(handleBustAnimation(currentBet));
+        dispatch(handleBustAnimation());
       } else if (score === 21) {
         dispatch(handleStand());
       }
@@ -128,7 +125,6 @@ const Hand: React.FC<HandProps> = ({
               onAnimationStart={() => {
                 if (!isDealer || index <= (revealIndex ?? -1)) {
                   playCardFlip();
-                  setAnimatingCardIndex(index);
                 }
               }}
               onAnimationComplete={() => handleAnimationComplete(index)}
